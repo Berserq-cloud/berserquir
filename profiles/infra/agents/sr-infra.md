@@ -19,7 +19,7 @@ handoffs:
     agent: qa
     prompt: Run validate/fmt and review the plan output pasted by the human against the acceptance criteria.
     send: true
-skills: [state-discipline]
+skills: [state-discipline, network-design, infra-security, resilience, platform-architecture]
 never: [components/**, pages/**, server/api/**, src/**]
 ---
 

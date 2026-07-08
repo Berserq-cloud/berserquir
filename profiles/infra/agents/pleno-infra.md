@@ -2,6 +2,7 @@
 name: pleno-infra
 description: Infrastructure mid-level engineer — single resources and adjustments following module patterns.
 extends: pleno
+skills: [state-discipline, network-design, resilience]
 agents:
   - junior-infra
   - qa
