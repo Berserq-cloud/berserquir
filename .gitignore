@@ -1,0 +1,18 @@
+# Source material from the original setups — contains company-specific conventions
+# (Setup 2: EMS/internal projects) and real project data (Setup 1: berserq.cloud).
+# Kept on disk as seed material for F4 (instinct pipeline / premium content),
+# NEVER committed — this repo is going public (D2: open-source).
+setup 1/
+setup 2/
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+*.log
+
+# npm pack artifacts (installer prepack vendors sources temporarily)
+berserqir/installer/core/
+berserqir/installer/profiles/
+berserqir/installer/adapters/
+*.tgz
+node_modules/

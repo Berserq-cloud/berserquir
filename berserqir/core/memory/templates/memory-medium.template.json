@@ -1,0 +1,11 @@
+{
+  "$comment": "memory-medium template — seeded by /init, validated by memory-medium.schema.json",
+  "currentMilestone": "",
+  "goal": "",
+  "progress": 0,
+  "updatedAt": "1970-01-01",
+  "features": [],
+  "technicalDebt": [],
+  "adrsActive": [],
+  "counters": { "tasksCompleted": 0, "handoffs": 0, "evalsRun": 0 }
+}

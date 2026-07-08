@@ -1,0 +1,24 @@
+{
+  "$comment": "Curated model-family affinities per area — ADVICE consumed by /init question 8, never applied automatically. This data ROTS: rankings shift with every model release. Refresh on `berserqir update`; always show sourcedAt to the user.",
+  "sourcedAt": "2026-07-08",
+  "sources": ["WebDev Arena", "SWE-bench Verified", "Aider polyglot leaderboard", "LMSYS Arena"],
+  "areas": {
+    "front": {
+      "leaning": "visual-strong families tend to lead frontend/UI generation benchmarks (layout fidelity, aesthetic defaults, CSS reasoning)",
+      "suggest": { "top": "Gemini 3 Pro (copilot)" },
+      "caveat": "verify against current WebDev Arena standings before accepting"
+    },
+    "back": {
+      "leaning": "agentic-coding leaders tend to win on API design, refactoring depth and long-context server work",
+      "suggest": { "top": "Claude Fable 5 (copilot)" }
+    },
+    "ops": {
+      "leaning": "review precision and instruction-following matter most for gates and pipelines; prefer a DIFFERENT family from the implementer (anti self-preference)",
+      "suggest": { "gates": "cross-family pick" }
+    },
+    "infra": {
+      "leaning": "strict schema adherence (HCL/YAML) and low hallucination rates matter more than creativity",
+      "suggest": { "top": "Claude Fable 5 (copilot)" }
+    }
+  }
+}

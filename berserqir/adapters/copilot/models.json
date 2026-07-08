@@ -1,0 +1,32 @@
+{
+  "$comment": "Model roster \u2014 seeded by defaults, overwritten by the /init model interview (question 8). Resolution order: overrides[agent] > profiles[profile][class] > [class] > omit (harness default \u2014 free-plan safe). Affinity RECOMMENDATIONS live in affinities.json (advice at interview time); this file is user truth.",
+  "top": "Claude Fable 5 (copilot)",
+  "mid": "Claude Sonnet 5 (copilot)",
+  "fast": "",
+  "profiles": {
+    "front": {
+      "top": "",
+      "mid": "",
+      "fast": ""
+    },
+    "back": {
+      "top": "",
+      "mid": "",
+      "fast": ""
+    },
+    "ops": {
+      "top": "",
+      "mid": "",
+      "fast": ""
+    },
+    "infra": {
+      "top": "",
+      "mid": "",
+      "fast": ""
+    }
+  },
+  "overrides": {
+    "qa": "",
+    "security": ""
+  }
+}

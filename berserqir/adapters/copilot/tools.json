@@ -1,0 +1,10 @@
+{
+  "$comment": "Canonical capability → Copilot tool name. Unmapped entries pass through verbatim (overlays may add harness-specific tools like playwright/*).",
+  "delegate": "agent",
+  "search": "search",
+  "edit": "edit",
+  "read": "read",
+  "execute": "execute/runInTerminal",
+  "web": "web",
+  "todo": "todo"
+}

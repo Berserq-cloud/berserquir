@@ -1,0 +1,41 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "berserqir/graph",
+  "title": "graph — textual repo graph, full adjacency (machine-consumed; codemap.md is the always-loaded index)",
+  "type": "object",
+  "required": ["nodes", "edges", "updatedAt"],
+  "additionalProperties": false,
+  "properties": {
+    "$comment": { "type": "string" },
+    "updatedAt": { "type": "string", "format": "date" },
+    "nodes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "type"],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "file/dir path relative to repo root, or an anchor (ADR-NNN, FEAT-YYYY-MM-DD-slug, DEBT-NNN)"
+          },
+          "type": { "enum": ["file", "module", "adr", "feature", "debt"] },
+          "label": { "type": "string", "description": "one-line purpose (optional)" }
+        }
+      }
+    },
+    "edges": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["from", "to", "type"],
+        "additionalProperties": false,
+        "properties": {
+          "from": { "type": "string", "description": "node id" },
+          "to": { "type": "string", "description": "node id" },
+          "type": { "enum": ["implements", "depends", "supersedes"] }
+        }
+      }
+    }
+  }
+}

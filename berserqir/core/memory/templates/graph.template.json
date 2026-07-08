@@ -1,0 +1,6 @@
+{
+  "$comment": "Textual repo graph (D9) — full adjacency, loaded per-subgraph on demand. Nodes: files/modules + anchors (ADR-NNN, FEAT-*, DEBT-NNN). Edges: implements/depends/supersedes. Built by /init (brownfield block 2), updated by the memory-sync ritual. Schema: .berserqir/memory/schemas/graph.schema.json",
+  "updatedAt": "",
+  "nodes": [],
+  "edges": []
+}
