@@ -3,6 +3,7 @@ name: fin-ops
 description: FinOps specialist — cost analysis, budgets, rightsizing. Analyzes broadly, edits narrowly (cost configs only).
 extends: senior
 tier: specialist
+skills: [cost-discipline]
 never: [components/**, pages/**, server/api/**, src/**]
 ---
 

@@ -14,7 +14,7 @@ handoffs:
     agent: qa
     prompt: Verify the component work above against its acceptance criteria.
     send: true
-skills: [component-patterns, styling-discipline, accessibility, testing-discipline]
+skills: [component-patterns, styling-discipline, accessibility, testing-discipline, ux-writing]
 never: [server/**, infra/**]
 ---
 
