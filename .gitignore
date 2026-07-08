@@ -11,8 +11,8 @@ Thumbs.db
 *.log
 
 # npm pack artifacts (installer prepack vendors sources temporarily)
-berserqir/installer/core/
-berserqir/installer/profiles/
-berserqir/installer/adapters/
+installer/core/
+installer/profiles/
+installer/adapters/
 *.tgz
 node_modules/
