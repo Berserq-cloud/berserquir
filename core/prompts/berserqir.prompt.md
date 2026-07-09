@@ -1,7 +1,7 @@
 ---
 name: berserqir
-description: Berserqir command hub — dispatch /berserqir <command> to the harness workflows (init, compress, evals, status).
-argument-hint: "init | compress | evals | status | help"
+description: Berserqir command hub — dispatch /berserqir <command> to the harness workflows (init, compress, evals, review, checkpoint, status).
+argument-hint: "init | compress | evals | review | checkpoint | status | help"
 ---
 
 # /berserqir — Command Hub
@@ -13,6 +13,8 @@ The text after `/berserqir` is the **subcommand** (plus optional arguments). Mat
 | `init` | Read `core/prompts/init.prompt.md` and follow it end-to-end (bootstrap is hosted by the **product** role — adopt its discipline). |
 | `compress` | Read `core/prompts/compress.prompt.md` and follow it end-to-end. |
 | `evals` (or `run-evals`) | Read `core/prompts/run-evals.prompt.md` and follow it end-to-end. Pass any trailing arguments (e.g. an eval id like `e07`) through. |
+| `review` (or `code-review`) | Read `core/prompts/code-review.prompt.md` and follow it end-to-end (hosted by the **qa** gate — read-only). |
+| `checkpoint` | Run the memory-sync ritual §write-after-acting manually: update `memory-short.md` (§Focus, §Open threads, §Errors & learnings) and `memory-medium.json` if a feature moved; then suggest a conventional commit (with anchors) for the work in progress. Nothing is pushed. |
 | `status` | Report harness state — see below. |
 | `help` | List this table with one-line descriptions and point to `AGENTS.md` for the roster. |
 

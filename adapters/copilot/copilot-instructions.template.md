@@ -25,7 +25,7 @@ Lives in `.berserqir/memory/`: `memory-long.md` (constitution) · `memory-medium
 
 ## Commands
 
-`/berserqir <command>` is the hub: `init` · `compress` · `evals` · `status` · `help`. Dedicated slash commands (`/init`, `/compress`, `/run-evals`) are equivalent.
+`/berserqir <command>` is the hub: `init` · `compress` · `evals` · `review` · `checkpoint` · `status` · `help`. Dedicated slash commands (`/init`, `/compress`, `/run-evals`, `/code-review`) are equivalent.
 
 ## Agent roster
 
