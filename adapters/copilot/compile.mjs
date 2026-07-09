@@ -191,6 +191,7 @@ const rewritePaths = (text) =>
     .replaceAll('core/memory/', '.berserqir/memory/')
     .replaceAll('core/hooks/', '.berserqir/hooks/')
     .replaceAll('core/evals/', '.berserqir/evals/')
+    .replaceAll('core/skills-resources/', '.berserqir/skills-resources/')
     .replaceAll('core/skills/', '.github/skills/')
     .replaceAll('core/prompts/', '.github/prompts/')
 

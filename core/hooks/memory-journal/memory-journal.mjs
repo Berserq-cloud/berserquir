@@ -55,4 +55,28 @@ if (journalLines > 0 && journalLines % 40 === 0)
   console.error(
     `[berserqir:memory-journal] journal has ${journalLines} entries — consider /berserqir compress at the next logical break`,
   )
+
+// evolve-readiness (stateless): when instincts.json is written (e.g. by /learn),
+// flag mature clusters at the natural moment — detection is deterministic,
+// promotion stays agent-side (/evolve) behind its human ALIGN gate.
+if ((evt.target ?? '').endsWith('instincts.json')) {
+  try {
+    const inst = JSON.parse(
+      readFileSync(join(MEMORY_DIR, 'instincts.json'), 'utf8'),
+    )
+    const byScope = {}
+    for (const i of inst.instincts ?? [])
+      if (i.status === 'active' && i.confidence >= 0.7)
+        byScope[i.scope] = (byScope[i.scope] ?? 0) + 1
+    const ready = Object.entries(byScope).filter(([, n]) => n >= 3)
+    if (ready.length)
+      console.error(
+        `[berserqir:memory-journal] evolve-ready instinct cluster(s): ${ready
+          .map(([s, n]) => `${s} (${n})`)
+          .join(', ')} — run /berserqir evolve (human OK still required)`,
+      )
+  } catch {
+    // malformed instincts.json is memory-validate's job, not ours
+  }
+}
 process.exit(0)

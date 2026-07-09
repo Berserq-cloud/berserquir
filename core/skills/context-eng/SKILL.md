@@ -16,7 +16,7 @@ Thin skill — the weight lives in the protocols. This is the map.
 
 ## Loading order for any task
 
-memory-short (state) → codemap (map) → memory-medium §feature (sprint) → memory-long §relevant (constraints) → subgraph/files (targets) → skill + demos (method).
+memory-short (state) → active instincts (learned reflexes — ≥ 0.7, cap 6, `core/protocols/instincts.md`) → codemap (map) → memory-medium §feature (sprint) → memory-long §relevant (constraints) → subgraph/files (targets) → skill + demos (method).
 
 ## Recovery protocol (when lost)
 

@@ -13,7 +13,7 @@ Trigger: memory-validate blocks on size budget, dumb-zone signals fire (≥2 of:
 2. **Extract what survives** (semantic triage):
    - Open threads → carried forward verbatim
    - Unresolved errors → carried forward verbatim
-   - Recurring patterns in §Errors & learnings → condensed to one bullet each (candidate instincts)
+   - Recurring patterns in §Errors & learnings → run the `/learn` extraction pass (`core/prompts/learn.prompt.md`): write/reinforce candidates in `.berserqir/memory/instincts.json` per `core/protocols/instincts.md`
    - §Journal → reduced to a 3-5 line summary ("session touched X files across Y modules, ran Z test cycles")
 3. **Rewrite** `memory-short.md` from the template: fresh §Journal, condensed §Focus (1 line: where we are), carried threads and errors.
 4. **Verify** — run memory-validate on the result; must pass headings + budget.

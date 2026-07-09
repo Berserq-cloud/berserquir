@@ -276,7 +276,9 @@ async function install({ isUpdate = false } = {}) {
       console.log(plan.modified.map((r) => `      ! ${r}`).join('\n'))
     if (orphans.removable.length)
       console.log(
-        orphans.removable.map((r) => `      - ${r} (no longer shipped)`).join('\n'),
+        orphans.removable
+          .map((r) => `      - ${r} (no longer shipped)`)
+          .join('\n'),
       )
     if (orphans.kept.length)
       warn(
@@ -462,6 +464,7 @@ async function doctor() {
     'memory-short.md',
     'memory-medium.json',
     'codemap.md',
+    'instincts.json',
   ]
   const memPresent = memFiles.filter((f) => exists(`.berserqir/memory/${f}`))
   add(
@@ -500,6 +503,23 @@ async function doctor() {
     info(
       'ℹ commit-quality available but not active — ln -s ../../.berserqir/hooks/commit-quality/commit-quality.sh .git/hooks/pre-commit',
     )
+  // informational (0 points): evolve-ready instinct clusters
+  const instincts = readJson(
+    path.join(target, '.berserqir/memory/instincts.json'),
+  )
+  if (instincts) {
+    const byScope = {}
+    for (const i of instincts.instincts || [])
+      if (i.status === 'active' && i.confidence >= 0.7)
+        byScope[i.scope] = (byScope[i.scope] || 0) + 1
+    const ready = Object.entries(byScope).filter(([, n]) => n >= 3)
+    if (ready.length)
+      info(
+        `ℹ evolve-ready instinct cluster(s): ${ready
+          .map(([s, n]) => `${s} (${n})`)
+          .join(', ')} — run /evolve in your harness chat`,
+      )
+  }
 
   // 4) graph integrity (anchors resolve, no ghosts)
   const graph = readJson(path.join(target, '.berserqir/memory/graph.json'))
@@ -604,7 +624,8 @@ async function uninstall() {
   info(`${removable.length} managed file(s) to remove`)
   if (modified.length)
     warn(`${modified.length} file(s) you modified — removed only with --force:`)
-  if (modified.length) console.log(modified.map((r) => `      ! ${r}`).join('\n'))
+  if (modified.length)
+    console.log(modified.map((r) => `      ! ${r}`).join('\n'))
   info(
     'preserved always: your memory files (memory-*.md/json, codemap, graph, human-profile), PRD/SPECS/TESTS',
   )

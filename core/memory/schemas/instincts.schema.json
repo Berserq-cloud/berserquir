@@ -1,0 +1,56 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "berserqir/instincts",
+  "title": "instincts — learned project-specific patterns (lifecycle rules: core/protocols/instincts.md)",
+  "type": "object",
+  "required": ["updatedAt", "instincts"],
+  "additionalProperties": false,
+  "properties": {
+    "$comment": { "type": "string" },
+    "updatedAt": { "type": "string", "format": "date" },
+    "instincts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "statement",
+          "scope",
+          "confidence",
+          "status",
+          "evidence",
+          "firstSeen",
+          "lastReinforced"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "type": "string", "pattern": "^INST-[a-z0-9][a-z0-9-]*$" },
+          "statement": {
+            "type": "string",
+            "description": "one line, imperative, project-specific — never a generic best practice"
+          },
+          "scope": {
+            "type": "string",
+            "description": "area (front/back/infra/ops) or \"project\""
+          },
+          "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+          "status": { "enum": ["candidate", "active", "promoted", "expired"] },
+          "evidence": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string",
+              "description": "journal date / anchor / session ref — no evidence, no instinct"
+            }
+          },
+          "firstSeen": { "type": "string", "format": "date" },
+          "lastReinforced": { "type": "string", "format": "date" },
+          "promotedTo": {
+            "type": "string",
+            "description": "generated skill path when status=promoted"
+          }
+        }
+      }
+    }
+  }
+}

@@ -86,6 +86,45 @@ if (base === 'graph.json') {
   process.exit(0)
 }
 
+if (base === 'instincts.json') {
+  let data
+  try {
+    data = JSON.parse(raw)
+  } catch (e) {
+    fail(`instincts.json is not valid JSON (${e.message})`)
+  }
+  if (!('updatedAt' in data) || !Array.isArray(data.instincts))
+    fail(`instincts.json requires "updatedAt" and an "instincts" array`)
+  const STATUS = new Set(['candidate', 'active', 'promoted', 'expired'])
+  const seen = new Set()
+  for (const i of data.instincts) {
+    if (!i.id || !/^INST-[a-z0-9][a-z0-9-]*$/.test(i.id))
+      fail(`instinct id "${i.id}" does not match INST-slug`)
+    if (seen.has(i.id)) fail(`duplicate instinct id "${i.id}"`)
+    seen.add(i.id)
+    if (!i.statement) fail(`instinct ${i.id}: missing statement`)
+    if (
+      typeof i.confidence !== 'number' ||
+      i.confidence < 0 ||
+      i.confidence > 1
+    )
+      fail(`instinct ${i.id}: confidence must be a number in [0,1]`)
+    if (!STATUS.has(i.status))
+      fail(`instinct ${i.id}: invalid status "${i.status}"`)
+    if (!Array.isArray(i.evidence) || i.evidence.length < 1)
+      fail(
+        `instinct ${i.id}: needs ≥1 evidence entry — no evidence, no instinct`,
+      )
+    if (i.status === 'active' && i.confidence < 0.7)
+      fail(
+        `instinct ${i.id}: active requires confidence ≥0.7 (has ${i.confidence})`,
+      )
+    if (i.status === 'promoted' && !i.promotedTo)
+      fail(`instinct ${i.id}: promoted requires "promotedTo" (skill path)`)
+  }
+  process.exit(0)
+}
+
 if (base === 'memory-medium.json') {
   let data
   try {

@@ -7,6 +7,7 @@ Memory is hybrid by primary consumer (plan D10): Markdown where LLM/human reads 
 | `memory-long.md` | MD | permanent | constitution: stack, constraints, conventions, active ADR refs |
 | `memory-medium.json` | JSON | sprint | feature tracker: status/owner/dates, debt, counters |
 | `memory-short.md` | MD | session | session journal: focus, last actions, errors, open threads |
+| `instincts.json` | JSON | rolling (30d reinforcement) | learned project patterns — lifecycle in `core/protocols/instincts.md` |
 
 ## Two layers
 
@@ -18,7 +19,7 @@ Memory is hybrid by primary consumer (plan D10): Markdown where LLM/human reads 
 
 Run at: task start · every handoff (both directions) · task end.
 
-1. **Read before acting:** memory-short (state) + memory-medium (sprint) + memory-long §relevant (constraints).
+1. **Read before acting:** memory-short (state) + memory-medium (sprint) + memory-long §relevant (constraints) + active instincts (≥ 0.7, cap 6 — `core/protocols/instincts.md` §Injection).
 2. **Write after acting:** memory-short — what was done, errors hit, open threads; memory-medium — feature status/counters if a feature moved.
 3. **Never write to memory-long** without an approved ADR (authority roles only).
 4. Set `memorySync: true` in the Sub-Agent Report only after step 2.

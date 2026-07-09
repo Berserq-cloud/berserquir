@@ -21,11 +21,11 @@ Contradiction between levels → stop and escalate. Never pick silently.
 
 ## Memory
 
-Lives in `.berserqir/memory/`: `memory-long.md` (constitution) · `memory-medium.json` (sprint) · `memory-short.md` (session journal) · `codemap.md` (repo map — read this FIRST when navigating). Missing? Run `/init`.
+Lives in `.berserqir/memory/`: `memory-long.md` (constitution) · `memory-medium.json` (sprint) · `memory-short.md` (session journal) · `codemap.md` (repo map — read this FIRST when navigating) · `instincts.json` (learned project patterns — load active ≥ 0.7, cap 6, per `.berserqir/protocols/instincts.md`). Missing? Run `/init`.
 
 ## Commands
 
-`/berserqir <command>` is the hub: `init` · `compress` · `evals` · `review` · `checkpoint` · `status` · `help`. Dedicated slash commands (`/init`, `/compress`, `/run-evals`, `/code-review`) are equivalent.
+`/berserqir <command>` is the hub: `init` · `compress` · `learn` · `evolve` · `evals` · `review` · `checkpoint` · `status` · `help`. Dedicated slash commands (`/init`, `/compress`, `/learn`, `/evolve`, `/run-evals`, `/code-review`) are equivalent.
 
 ## Agent roster
 
