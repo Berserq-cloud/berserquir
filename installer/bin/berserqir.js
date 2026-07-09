@@ -342,9 +342,16 @@ async function install({ isUpdate = false } = {}) {
 async function doctor() {
   const target = path.resolve(flags.dir || '.')
   const checks = [] // { name, points, pass, fix }
-  const add = (name, points, pass, fix) => checks.push({ name, points, pass: !!pass, fix })
+  const add = (name, points, pass, fix) =>
+    checks.push({ name, points, pass: !!pass, fix })
   const exists = (rel) => fs.existsSync(path.join(target, rel))
-  const read = (rel) => { try { return fs.readFileSync(path.join(target, rel), 'utf8') } catch { return null } }
+  const read = (rel) => {
+    try {
+      return fs.readFileSync(path.join(target, rel), 'utf8')
+    } catch {
+      return null
+    }
+  }
 
   console.log(`\n  ⚔️  berserqir v${pkg.version} — doctor\n`)
 
@@ -352,69 +359,165 @@ async function doctor() {
   const manifest = readJson(path.join(target, '.berserqir/manifest.json'))
   add('manifest present', 4, manifest, 'run: npx berserqir install')
   if (manifest) {
-    add('manifest has hashes (installer-managed)', 2, manifest.hashes,
-      'reinstall via npx berserqir install (manual copies lack update protection)')
-    let missing = 0, modified = 0
+    add(
+      'manifest has hashes (installer-managed)',
+      2,
+      manifest.hashes,
+      'reinstall via npx berserqir install (manual copies lack update protection)',
+    )
+    let missing = 0,
+      modified = 0
     for (const [rel, h] of Object.entries(manifest.hashes || {})) {
       const abs = path.join(target, rel)
       if (!fs.existsSync(abs)) missing++
       else if (sha(abs) !== h) modified++
     }
-    add(`no missing harness files (${missing} missing)`, 3, missing === 0, 'npx berserqir update restores them')
-    if (modified > 0) info(`ℹ ${modified} file(s) locally modified — fine, update will preserve them`)
-    const hookFiles = Object.keys(manifest.hashes || {}).filter((f) => /\.(sh|mjs)$/.test(f) && f.includes('hooks/'))
+    add(
+      `no missing harness files (${missing} missing)`,
+      3,
+      missing === 0,
+      'npx berserqir update restores them',
+    )
+    if (modified > 0)
+      info(
+        `ℹ ${modified} file(s) locally modified — fine, update will preserve them`,
+      )
+    const hookFiles = Object.keys(manifest.hashes || {}).filter(
+      (f) => /\.(sh|mjs)$/.test(f) && f.includes('hooks/'),
+    )
     const badBits = hookFiles.filter((f) => {
-      try { return !(fs.statSync(path.join(target, f)).mode & 0o111) && f.endsWith('.sh') } catch { return false }
+      try {
+        return (
+          !(fs.statSync(path.join(target, f)).mode & 0o111) && f.endsWith('.sh')
+        )
+      } catch {
+        return false
+      }
     })
-    add('hook scripts executable', 2, badBits.length === 0, `chmod +x ${badBits.join(' ')}`)
+    add(
+      'hook scripts executable',
+      2,
+      badBits.length === 0,
+      `chmod +x ${badBits.join(' ')}`,
+    )
   }
-  add('hooks wired (.github/hooks/berserqir.json)', 2, exists('.github/hooks/berserqir.json'), 'npx berserqir update')
+  add(
+    'hooks wired (.github/hooks/berserqir.json)',
+    2,
+    exists('.github/hooks/berserqir.json'),
+    'npx berserqir update',
+  )
 
   // 2) guardrails intact
-  for (const g of ['git-safety/git-safety.sh', 'secret-scan/secret-scan.sh', 'config-protection/config-protection.sh', 'memory-validate/memory-validate.mjs'])
-    add(`guardrail ${g.split('/')[0]}`, 1, exists(`.berserqir/hooks/${g}`), 'npx berserqir update')
+  for (const g of [
+    'git-safety/git-safety.sh',
+    'secret-scan/secret-scan.sh',
+    'config-protection/config-protection.sh',
+    'memory-validate/memory-validate.mjs',
+  ])
+    add(
+      `guardrail ${g.split('/')[0]}`,
+      1,
+      exists(`.berserqir/hooks/${g}`),
+      'npx berserqir update',
+    )
 
   // 3) memory & SDD
-  const memFiles = ['memory-long.md', 'memory-short.md', 'memory-medium.json', 'codemap.md']
+  const memFiles = [
+    'memory-long.md',
+    'memory-short.md',
+    'memory-medium.json',
+    'codemap.md',
+  ]
   const memPresent = memFiles.filter((f) => exists(`.berserqir/memory/${f}`))
-  add(`memory seeded (${memPresent.length}/${memFiles.length})`, 3, memPresent.length === memFiles.length, 'run /init in your harness chat')
+  add(
+    `memory seeded (${memPresent.length}/${memFiles.length})`,
+    3,
+    memPresent.length === memFiles.length,
+    'run /init in your harness chat',
+  )
   for (const f of ['memory-long.md', 'memory-short.md', 'codemap.md']) {
     const raw = read(`.berserqir/memory/${f}`)
     if (!raw) continue
-    const budgets = { 'memory-long.md': 4000, 'memory-short.md': 2500, 'codemap.md': 2000 }
+    const budgets = {
+      'memory-long.md': 4000,
+      'memory-short.md': 2500,
+      'codemap.md': 2000,
+    }
     const tok = Math.round(raw.length / 4)
-    add(`${f} within budget (~${tok} tok)`, 1, tok <= budgets[f], `run /compress (budget ${budgets[f]})`)
+    add(
+      `${f} within budget (~${tok} tok)`,
+      1,
+      tok <= budgets[f],
+      `run /compress (budget ${budgets[f]})`,
+    )
   }
-  add('SDD present (PRD/SPECS/TESTS)', 2, exists('PRD.md') && exists('SPECS.md') && exists('TESTS.md'), 'run /init to scaffold drafts')
+  add(
+    'SDD present (PRD/SPECS/TESTS)',
+    2,
+    exists('PRD.md') && exists('SPECS.md') && exists('TESTS.md'),
+    'run /init to scaffold drafts',
+  )
 
   // 4) graph integrity (anchors resolve, no ghosts)
   const graph = readJson(path.join(target, '.berserqir/memory/graph.json'))
   if (graph) {
     const ids = new Set((graph.nodes || []).map((n) => n.id))
-    const ghostEdges = (graph.edges || []).filter((e) => !ids.has(e.from) || !ids.has(e.to))
-    add('graph: no ghost edges', 2, ghostEdges.length === 0, `fix ${ghostEdges.length} edge(s) referencing unknown nodes`)
-    const ghostFiles = (graph.nodes || []).filter((n) => (n.type === 'file' || n.type === 'module') && !exists(n.id))
-    add('graph: node paths exist on disk', 2, ghostFiles.length === 0, `${ghostFiles.length} node(s) point at deleted paths — update graph.json`)
+    const ghostEdges = (graph.edges || []).filter(
+      (e) => !ids.has(e.from) || !ids.has(e.to),
+    )
+    add(
+      'graph: no ghost edges',
+      2,
+      ghostEdges.length === 0,
+      `fix ${ghostEdges.length} edge(s) referencing unknown nodes`,
+    )
+    const ghostFiles = (graph.nodes || []).filter(
+      (n) => (n.type === 'file' || n.type === 'module') && !exists(n.id),
+    )
+    add(
+      'graph: node paths exist on disk',
+      2,
+      ghostFiles.length === 0,
+      `${ghostFiles.length} node(s) point at deleted paths — update graph.json`,
+    )
   }
   const memLong = read('.berserqir/memory/memory-long.md')
   const specs = read('SPECS.md')
   if (memLong && specs) {
     const refs = [...new Set(memLong.match(/ADR-\d{3,}/g) || [])]
     const dangling = refs.filter((r) => !specs.includes(r))
-    add('anchors: memory-long ADRs resolve in SPECS', 2, dangling.length === 0, `dangling: ${dangling.join(', ')}`)
+    add(
+      'anchors: memory-long ADRs resolve in SPECS',
+      2,
+      dangling.length === 0,
+      `dangling: ${dangling.join(', ')}`,
+    )
   }
 
   // 5) version freshness (never blocks — Impeccable UPDATE_AVAILABLE pattern)
   try {
-    const r = spawnSync('npm', ['view', 'berserqir', 'version'], { encoding: 'utf8', timeout: 5000 })
+    const r = spawnSync('npm', ['view', 'berserqir', 'version'], {
+      encoding: 'utf8',
+      timeout: 5000,
+    })
     const latest = (r.stdout || '').trim()
-    const newer = (a, b) => { // a > b?
+    const newer = (a, b) => {
+      // a > b?
       const [x, y] = [a, b].map((v) => v.split('.').map(Number))
-      for (let i = 0; i < 3; i++) { if ((x[i] || 0) > (y[i] || 0)) return true; if ((x[i] || 0) < (y[i] || 0)) return false }
+      for (let i = 0; i < 3; i++) {
+        if ((x[i] || 0) > (y[i] || 0)) return true
+        if ((x[i] || 0) < (y[i] || 0)) return false
+      }
       return false
     }
-    if (latest && newer(latest, pkg.version)) info(`ℹ UPDATE_AVAILABLE: v${latest} on npm (you run v${pkg.version}) — npx berserqir@latest update`)
-  } catch { /* offline is fine */ }
+    if (latest && newer(latest, pkg.version))
+      info(
+        `ℹ UPDATE_AVAILABLE: v${latest} on npm (you run v${pkg.version}) — npx berserqir@latest update`,
+      )
+  } catch {
+    /* offline is fine */
+  }
 
   // report
   const earned = checks.filter((c) => c.pass).reduce((s, c) => s + c.points, 0)
@@ -422,8 +525,12 @@ async function doctor() {
   console.log('')
   for (const c of checks) console.log(`  ${c.pass ? '✓' : '✗'} ${c.name}`)
   const fails = checks.filter((c) => !c.pass)
-  console.log(`\n  score: ${earned}/${total}${fails.length ? '\n\n  top actions:' : ' — all clear ⚔️'}`)
-  fails.slice(0, 3).forEach((c, i) => console.log(`    ${i + 1}) [${c.name}] ${c.fix}`))
+  console.log(
+    `\n  score: ${earned}/${total}${fails.length ? '\n\n  top actions:' : ' — all clear ⚔️'}`,
+  )
+  fails
+    .slice(0, 3)
+    .forEach((c, i) => console.log(`    ${i + 1}) [${c.name}] ${c.fix}`))
   console.log('')
   process.exitCode = fails.some((c) => c.points >= 3) ? 1 : 0
 }
