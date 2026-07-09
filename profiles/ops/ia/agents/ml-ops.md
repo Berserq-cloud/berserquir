@@ -10,7 +10,7 @@ handoffs:
     agent: qa
     prompt: Verify the model eval pipeline above (metrics recorded, thresholds enforced, reproducible).
     send: true
-skills: []
+skills: [model-lifecycle]
 ---
 
 # Specialization: MLOps (ops/ia)

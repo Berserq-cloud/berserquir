@@ -10,7 +10,7 @@ handoffs:
     agent: qa
     prompt: Verify the security hardening above did not break functionality (run relevant suites).
     send: true
-skills: [security-hardening]
+skills: [security-hardening, incident-response]
 ---
 
 # Specialization: SecOps (ops/sec)

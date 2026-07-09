@@ -10,7 +10,7 @@ handoffs:
     agent: qa
     prompt: Verify the CI/CD change above (dry-run where possible, check gates still fire).
     send: true
-skills: [pipeline-discipline]
+skills: [pipeline-discipline, release-engineering]
 never: [components/**, pages/**, server/api/**]
 ---
 
