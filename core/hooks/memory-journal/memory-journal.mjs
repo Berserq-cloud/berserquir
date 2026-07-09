@@ -42,4 +42,12 @@ const insertAt = (() => {
 })();
 
 writeFileSync(FILE, raw.slice(0, insertAt) + line + "\n" + raw.slice(insertAt));
+
+// strategic compact (ECC pattern, stateless): when the journal grows long,
+// suggest /compress proactively instead of waiting for the size budget to blow.
+const journalLines = (raw.slice(idx).match(/^- \d{4}-/gm) || []).length + 1;
+if (journalLines > 0 && journalLines % 40 === 0)
+  console.error(
+    `[berserqir:memory-journal] journal has ${journalLines} entries — consider /berserqir compress at the next logical break`,
+  );
 process.exit(0);

@@ -33,7 +33,7 @@ const OUT = argOf('--out', '.')
 const PROFILES = (argOf('--profiles', 'front') || '')
   .split(',')
   .map((s) => s.trim())
-  .filter(Boolean)
+  .filter((s) => s && s !== 'core') // 'core' = explicit core-only (no area profiles)
   .flatMap((p) =>
     p === 'full' || p === 'stack' || p === 'all'
       ? ['front', 'back', 'ops', 'infra']
