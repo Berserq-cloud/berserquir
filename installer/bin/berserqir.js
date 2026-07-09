@@ -140,6 +140,33 @@ function detectProfiles(dir) {
   return out
 }
 
+// which harness does this repo already use? (signals, strongest first)
+function detectHarness(target) {
+  const has = (p) => fs.existsSync(path.join(target, p))
+  const out = []
+  if (has('.claude') || has('CLAUDE.md')) out.push('claude-code')
+  if (has('.cursor')) out.push('cursor')
+  if (
+    has('.github/copilot-instructions.md') ||
+    has('.github/prompts') ||
+    has('.github/agents')
+  )
+    out.push('copilot')
+  return out
+}
+
+// which IDE/agent terminal is running this command? (environment signals — strongest of all)
+function detectIdeEnv() {
+  if (process.env.CLAUDECODE || process.env.CLAUDE_CODE_ENTRYPOINT)
+    return 'claude-code' // spawned by a Claude Code session
+  if (process.env.CURSOR_TRACE_ID) return 'cursor'
+  if (process.env.TERM_PROGRAM === 'vscode')
+    return /cursor/i.test(process.env.VSCODE_GIT_ASKPASS_MAIN || '')
+      ? 'cursor' // Cursor is a VS Code fork — disambiguate via helper paths
+      : 'copilot'
+  return null
+}
+
 // ---------- install / update ----------
 async function install({ isUpdate = false } = {}) {
   const target = path.resolve(flags.dir || '.')
@@ -150,7 +177,20 @@ async function install({ isUpdate = false } = {}) {
     )
   const prevManifest = readJson(path.join(target, '.berserqir/manifest.json'))
   const HARNESSES = ['copilot', 'claude-code', 'cursor']
-  const harness = flags.harness || prevManifest?.harness || 'copilot'
+  // harness: flag > manifest (update) > detect(IDE env, repo signals) + prompt
+  let harness = flags.harness || prevManifest?.harness
+  if (!harness) {
+    const envIde = detectIdeEnv()
+    const detected = detectHarness(target)
+    if (envIde) info(`running inside a ${envIde} terminal`)
+    if (detected.length) info(`repo harness signal(s): ${detected.join(', ')}`)
+    const suggested = envIde || detected[0] || 'copilot'
+    harness =
+      flags.yes || !process.stdin.isTTY
+        ? suggested
+        : await ask(`Target harness (${HARNESSES.join(' | ')})`, suggested)
+  }
+  harness = harness.trim().toLowerCase()
   if (!HARNESSES.includes(harness))
     die(
       `harness "${harness}" is not available — this version ships: ${HARNESSES.join(', ')}`,
@@ -698,7 +738,7 @@ function help() {
   Options:
     --profiles <list>   Areas: ${AREAS.join(',')} · "full" = everything · "core" = core-only
     --dir <path>        Target repo (default: current directory)
-    --harness <name>    Target harness: copilot (default) | claude-code | cursor
+    --harness <name>    Target harness: copilot | claude-code | cursor (omitted: detected from your IDE terminal + repo signals, then asked)
     --yes, -y           Accept detected defaults, skip confirmations
     --force             Overwrite files you modified since the last install
     --dry-run           Show the plan, write nothing
