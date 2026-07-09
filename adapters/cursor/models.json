@@ -1,0 +1,16 @@
+{
+  "$comment": "Model roster for Cursor — empty by default (omit = Cursor Auto model selection, plan-safe on any tier). The /init model interview (question 8) fills this per class/profile with the model names available in YOUR Cursor plan. Resolution order: overrides[agent] > profiles[profile][class] > [class] > omit.",
+  "top": "",
+  "mid": "",
+  "fast": "",
+  "profiles": {
+    "front": { "top": "", "mid": "", "fast": "" },
+    "back": { "top": "", "mid": "", "fast": "" },
+    "ops": { "top": "", "mid": "", "fast": "" },
+    "infra": { "top": "", "mid": "", "fast": "" }
+  },
+  "overrides": {
+    "qa": "",
+    "security": ""
+  }
+}

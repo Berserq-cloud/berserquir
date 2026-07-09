@@ -45,6 +45,7 @@ Golden rule: **never edit compiled output** (`.github/`, `.claude/`, `.cursor/`)
 
 - **Copilot `.agent.md`** (closed schema — unknown attrs raise warnings): `name, description, model, tools, agents, handoffs, user-invocable, disable-model-invocation, target, github, argument-hint`
 - **Claude Code `agents/*.md`**: `name, description, tools, model`
+- **Cursor `agents/bq-*.md`** (prefixed `bq-` — avoids collisions with user agents): `name, description, model` — tools discipline renders as a `## Tools (allowed)` body section; instructions compile to native glob-scoped rules (`.cursor/rules/*.mdc`)
 - `model` routing classes translate to concrete model strings per target config: `top` / `mid` / `fast` → installer maps them at compile time
 - `extends` is resolved during composition and never appears in compiled output
 

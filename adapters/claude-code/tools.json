@@ -1,0 +1,10 @@
+{
+  "$comment": "Canonical capability → Claude Code tool names (comma-joined into the agent frontmatter `tools` field). Unmapped entries pass through verbatim.",
+  "delegate": ["Task"],
+  "search": ["Grep", "Glob"],
+  "edit": ["Edit", "Write"],
+  "read": ["Read"],
+  "execute": ["Bash"],
+  "web": ["WebFetch", "WebSearch"],
+  "todo": ["TodoWrite"]
+}

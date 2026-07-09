@@ -1,0 +1,16 @@
+{
+  "$comment": "Model roster for Claude Code — aliases resolve to the plan's current model (plan-safe). Single-family harness: cross-family gate/panel diversity (D11) degrades here by design. Resolution order: overrides[agent] > profiles[profile][class] > [class] > omit (inherit session model).",
+  "top": "opus",
+  "mid": "sonnet",
+  "fast": "haiku",
+  "profiles": {
+    "front": { "top": "", "mid": "", "fast": "" },
+    "back": { "top": "", "mid": "", "fast": "" },
+    "ops": { "top": "", "mid": "", "fast": "" },
+    "infra": { "top": "", "mid": "", "fast": "" }
+  },
+  "overrides": {
+    "qa": "",
+    "security": ""
+  }
+}

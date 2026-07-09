@@ -46,6 +46,104 @@ Berserqir's context layer is a deliberate lightweight take on **KAG — Knowledg
 
 The trick that makes "lite" viable: **canonical IDs design away entity linking and disambiguation** — the most expensive parts of full KAG. No embeddings, no vector store, no extraction pipeline. `/init` builds the graph (human-confirmed, block by block, on brownfield), the memory-sync ritual keeps it alive, and `e11` fails loudly when it rots.
 
+## Architecture (the technical part)
+
+**Terminology, precisely:** GitHub Copilot, Claude Code and Cursor are the *harnesses* — the runtimes that wrap a model with tools. Berserqir is the **discipline layer compiled into them**: one canonical source, three native materializations. Same squad, same memory, same guardrails — whichever harness each dev on your team runs.
+
+### Why SDD ⊕ ICL ⊕ KAG (the design rationale)
+
+Agent failures in real codebases are predictable. Each pillar answers exactly one failure mode:
+
+| Failure mode | Pillar | What it provides |
+|---|---|---|
+| **Drift** — agents re-decide things already decided, invent requirements, ship past the spec | **SDD** (spec-driven development): the PRD → SPECS → TESTS triangle + ADR registry as a governance hierarchy with defined precedence. Architectural ambiguity doesn't get guessed — it **blocks** and routes to the human (ALIGN gate), and the decision lands as an ADR | *Authority* — what to build and who decides, in writing |
+| **Amnesia** — every session starts from zero; you make the same correction five times; advice stays generic | **ICL** (in-context learning): a curated demo pool (1–2 task-matched examples, anti-examples from real failures, provenance tracked) + the instinct pipeline that grows demos and skills from your session journal. Fine-tuning per repo is impossible — **the context window is the only learning channel that exists at the model boundary**, so it has to be engineered, not improvised | *Learning* — how THIS project does things |
+| **Drowning** — the repo exceeds the context window; vector RAG is weak at multi-hop code relations and decision trails | **KAG-lite** (previous section): typed graph + canonical anchors + agentic grep traversal, zero infrastructure | *Navigation* — where things are, how they connect, and why |
+
+The pillars don't stand alone — they close a loop through the memory system: **SDD mints the anchors** (`ADR-012`, `FEAT-…`) → **the graph indexes them** (KAG's mutual indexing) → **agents traverse cheaply** and the journal records what happened → **the instinct pipeline turns the journal into behavior** (ICL demos, generated skills) → promoted decisions feed back into SPECS and memory-long. Intent, knowledge and behavior form a cycle; the TTL memory tiers (long/medium/short) are the substrate that carries it between sessions.
+
+### The loop, visualized (memory × runtime)
+
+```
+                            Human — the apex
+         ALIGN ▲ (decision becomes an ADR)        ▲ eval gate + explicit OK
+               │                                  │
+  SDD ── PRD → SPECS (+ADR registry) → TESTS   /evolve ◀─ cluster ≥3 active ≥0.7
+               │ anchors: ADR-NNN · FEAT-*        │
+               ▼                                  ▼
+  KAG ── codemap.md (always loaded) + graph.json   generated SKILL.md ─▶ next task
+               │ grep anchor = O(1) jump
+               ▼
+  agent loop (fast-path ⇄ ceremony) ◀─ SessionStart injects §Focus + instincts (≥0.7, cap 6)
+        │ every edit          ▲ allow / block                    ▲
+        ▼                     │                                  │ /learn: +0.2 reinforce
+  hooks: journal · git-safety · config-protection · validate     │  −0.3 contradict · 30d expiry
+        │ journal line                                           │
+        ▼                                                        │
+  memory-short.md ── budget blow / 40 entries ─▶ /compress ────▶ instincts.json
+  (memory-long = constitution, ADR-gated · memory-medium = sprint tracker)
+```
+
+Every arrow is either a deterministic hook (zero-LLM) or a gated prompt workflow — nothing in the loop relies on the model "remembering to do it".
+
+### Why core ⊕ profiles ⊕ adapters (one source, many targets)
+
+The decomposition follows **what varies**: discipline is invariant (the loop, report schema, guardrails, evals — `core/`), content varies by area (front/back/infra/ops overlays, instructions and skills — `profiles/`), format varies by harness (`adapters/`). Nothing is duplicated along an axis it doesn't vary on: edit one protocol → recompile → all 18 agents update in every harness. And the stack appears in **none** of it — your stack and conventions live in project memory (`memory-long §stack`, seeded by `/init`), which is why the same package serves a component-heavy web app and a Terraform-only infra repo without shipping a single framework name.
+
+### Canonical monorepo
+
+```
+core/        the invariant — always installed
+  agents/      8 archetypes: orchestrator · architect · product · senior · pleno · junior · qa · security
+  protocols/   agentic-loop · memory-sync · deliberation · parallelism · context-budget · mentorship · instincts · sub-agent-report
+  skills/      5 core disciplines · hooks/  6 zero-dep guardrails · evals/  e01–e13 (each with an anti-check)
+  memory/      templates + JSON schemas (TTL tiers, graph, instincts) · prompts/  the workflows · templates/  SDD skeletons
+profiles/    per-area content — install what you need
+  front/ back/ infra/ ops/{dev,sec,fin,ia}   (agent overlays · glob-scoped instructions · 31 discipline skills)
+adapters/    one compiler per harness (copilot · claude-code · cursor) — zero dependencies
+installer/   the npx CLI: install · update · uninstall · doctor — zero dependencies
+```
+
+### The compilation model
+
+Agents ship as **archetype ⊕ overlay**: `core/agents/senior.md` (loop discipline, report schema, context budgets, escalation rules) composed with `profiles/front/agents/sr-front.md` (skills, scope, handoffs) → one complete agent materialized per harness. Overlay wins on conflict; `never` scopes union; generic tier references (senior/pleno/junior) are rewritten to the installed area squad, so the orchestrator always routes to real agents.
+
+Each adapter enforces its target's **frontmatter whitelist** (`core/FORMAT.md`). Anything a harness doesn't support is *never dropped* — it renders as body sections the model still reads. Degradation is explicit:
+
+| Capability | Copilot | Claude Code | Cursor |
+|---|---|---|---|
+| Agents | `.github/agents/` + native handoffs | `.claude/agents/` | `.cursor/agents/bq-*` (prefixed) |
+| Glob-scoped instructions | native `applyTo` | table in CLAUDE.md (agent discipline) | native `.mdc` rules |
+| Commands | `.github/prompts/` | `.claude/commands/` | `.cursor/commands/` |
+| Guardrail hooks | postToolUse JSON | **full native**: PreToolUse deny · SessionStart inject · Stop verify · PreCompact archive | `hooks.json` permission protocol (real deny) |
+| Model routing | roster names | `opus/sonnet/haiku` aliases | Auto (roster optional) |
+
+### Load regimes (hub-and-spoke)
+
+Harnesses auto-load by path, so placement follows the **load regime**, not DRY dogma: always-loaded content (agents, rules, bootstrap) is materialized inside each harness dir — a pointer would degrade it; on-demand content (protocols, templates, evals, skill resources) lives once in the `.berserqir/` hub, referenced by relative path; shared state (PRD/SPECS/TESTS, memory, graph) sits at the root/hub — a mixed team (one dev on Cursor, another on Claude Code) reads the same truth.
+
+### Two-layer automation
+
+**Hooks detect, agents think.** The deterministic layer (zero-LLM scripts) journals every edit, validates memory schemas and budgets, blocks dangerous git, and flags compress/evolve readiness at the exact right moment. The semantic layer (prompts + the memory-sync ritual) does the thinking: triage, extraction, drafting. The human ALIGN gate on skill promotion is never automated away.
+
+### Role taxonomy & routing
+
+Three role types with hard tool discipline: **authority** (orchestrator — architecturally cannot edit; architect; product), **execution** (senior/pleno/junior per area — junior is the cheap fast-path lane and always escalates on auth, payments, migrations), **gate** (qa, security — read-only). `model: top|mid|fast` resolves per harness and plan via `models.json` (seeded by `/init` question 8, survives updates). Parallel wave cap = deliberation quorum = **3**.
+
+### The control plane (delegation · escalation · deliberation · mentorship)
+
+- **Delegation is contract-first** — every sub-agent returns a Sub-Agent Report (JSON schema: status, files touched, verification evidence, `memorySync`). No valid report, no accepted work — the orchestrator validates instead of trusting.
+- **Escalation ladder** — junior → pleno → senior → architect → orchestrator, and **domain beats size**: a one-line diff in auth/payments/migrations escalates; a 200-line rename doesn't.
+- **Deliberation quorum = 3** — trivial gets one agent; genuine technical alternatives get a 3-vote panel; architectural questions get a proponent × opponent × synthesizer debate whose output is *advisory* — the human ratifies via ALIGN and the decision lands as an ADR. Odd panels can't tie.
+- **Ceremony auto-regulates** — the fast-path skips phases by rule, not by mood, and the eval suite anti-checks *over*-ceremony as hard as under-performance.
+- **Mentorship (anti-deskilling)** — per-area modes from `human-profile.md`: Learn (teach before doing), React (accelerate the known, teach the new), Productivity (full multiplier). Dual calibration: the project shapes generated content, the human profile shapes its depth. Guardrails are identical in every mode.
+
+In classic terms: adapters are the literal **Adapter** pattern · archetype ⊕ overlay is **template-method inheritance flattened at compile time** · model routing is a **strategy table** · guardrails are **policy-as-code** · the hub is a **single source of truth with materialized views**.
+
+### Install semantics
+
+Everything is **vendored** — npm exists only at install/update time; the harness runs in a Terraform-only repo with no `package.json`. `.berserqir/manifest.json` records hashes of the *compiled* artifacts: disk ≠ hash means you modified the file, and `update` never overwrites it silently (orphans from old versions are pruned; your memory is always preserved). `doctor` scores the installation deterministically — wiring, guardrails, memory budgets, graph integrity — and is CI-safe (exit 1 on critical failure).
+
 ## Philosophy
 
 1. **Discipline over templates** — skills teach the universal rules (the *why*); your codebase's conventions live in memory, seeded by `/init` and refined as the harness learns your project.
@@ -54,4 +152,4 @@ The trick that makes "lite" viable: **canonical IDs design away entity linking a
 
 ## Status
 
-`0.1.x` — GitHub Copilot target complete. Claude Code and Cursor adapters in progress. MIT.
+`0.3.x` — all three MVP targets complete: **GitHub Copilot**, **Claude Code** (`--harness claude-code` — native session hooks: automatic memory injection, instinct loading, archive-before-compaction, git-safety as PreToolUse) and **Cursor** (`--harness cursor` — glob-scoped area rules, `bq-*` agents, git-safety denies via the hooks permission protocol). MIT.

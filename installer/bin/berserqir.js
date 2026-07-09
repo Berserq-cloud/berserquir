@@ -148,10 +148,12 @@ async function install({ isUpdate = false } = {}) {
     die(
       'cannot locate berserqir sources (core/, adapters/) — corrupted package?',
     )
-  const harness = flags.harness || 'copilot'
-  if (harness !== 'copilot')
+  const prevManifest = readJson(path.join(target, '.berserqir/manifest.json'))
+  const HARNESSES = ['copilot', 'claude-code', 'cursor']
+  const harness = flags.harness || prevManifest?.harness || 'copilot'
+  if (!HARNESSES.includes(harness))
     die(
-      `harness "${harness}" is not available yet — this version ships the GitHub Copilot adapter only`,
+      `harness "${harness}" is not available — this version ships: ${HARNESSES.join(', ')}`,
     )
 
   console.log(
@@ -171,7 +173,6 @@ async function install({ isUpdate = false } = {}) {
       `target is not the git root (${gitRoot}) — hooks resolve paths from the git root`,
     )
 
-  const prevManifest = readJson(path.join(target, '.berserqir/manifest.json'))
   if (isUpdate && !prevManifest)
     die('nothing to update here — run: npx berserqir install')
   if (prevManifest)
@@ -222,7 +223,7 @@ async function install({ isUpdate = false } = {}) {
     const res = spawnSync(
       process.execPath,
       [
-        path.join(src, 'adapters/copilot/compile.mjs'),
+        path.join(src, 'adapters', harness, 'compile.mjs'),
         '--root',
         src,
         '--out',
@@ -360,10 +361,16 @@ async function install({ isUpdate = false } = {}) {
     ok(
       `wrote ${toWrite.length} file(s) · ${plan.same.length} already current · ${overwriteModified ? 0 : plan.modified.length} kept · ${orphans.removable.length} orphan(s) removed`,
     )
+    const chatHint =
+      harness === 'claude-code'
+        ? 'Run `claude` in this repo and use /berserqir init to seed project memory'
+        : harness === 'cursor'
+          ? 'Open in Cursor and run /berserqir init to seed project memory'
+          : 'Open in VS Code (Copilot) and run /init to seed project memory'
     console.log(`
   Next steps:
     1. Review & commit — the harness is vendored, it is part of your repo now.
-    2. Open in VS Code (Copilot) and run /init to seed project memory
+    2. ${chatHint}
        (or /berserqir status to see what's missing).
     3. Smoke-check with /run-evals.
 `)
@@ -437,10 +444,16 @@ async function doctor() {
       `chmod +x ${badBits.join(' ')}`,
     )
   }
+  const wiringFile =
+    manifest?.harness === 'claude-code'
+      ? '.claude/settings.json'
+      : manifest?.harness === 'cursor'
+        ? '.cursor/hooks.json'
+        : '.github/hooks/berserqir.json'
   add(
-    'hooks wired (.github/hooks/berserqir.json)',
+    `hooks wired (${wiringFile})`,
     2,
-    exists('.github/hooks/berserqir.json'),
+    exists(wiringFile),
     'npx berserqir update',
   )
 
@@ -685,7 +698,7 @@ function help() {
   Options:
     --profiles <list>   Areas: ${AREAS.join(',')} · "full" = everything · "core" = core-only
     --dir <path>        Target repo (default: current directory)
-    --harness <name>    Target harness (default: copilot — others coming)
+    --harness <name>    Target harness: copilot (default) | claude-code | cursor
     --yes, -y           Accept detected defaults, skip confirmations
     --force             Overwrite files you modified since the last install
     --dry-run           Show the plan, write nothing

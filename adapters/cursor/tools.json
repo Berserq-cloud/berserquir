@@ -1,0 +1,10 @@
+{
+  "$comment": "Canonical capability → Cursor tool label (rendered as a body section '## Tools (allowed)' — Cursor agent frontmatter has no verified tools whitelist, so discipline lives in the body). Unmapped entries pass through verbatim.",
+  "delegate": "Subagents",
+  "search": "Grep / Codebase search",
+  "edit": "Edit file",
+  "read": "Read file",
+  "execute": "Terminal",
+  "web": "Web search",
+  "todo": "Todos"
+}
