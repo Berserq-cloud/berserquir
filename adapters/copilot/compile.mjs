@@ -434,7 +434,7 @@ write(
           {
             type: 'command',
             matcher: 'edit|create|apply_patch',
-            bash: `node "$(git rev-parse --show-toplevel)/.berserqir/hooks/copilot-adapter.mjs"`,
+            bash: `node .berserqir/hooks/copilot-adapter.mjs`, // relative to workspace root — no command substitution, Windows-safe
             timeoutSec: 10,
           },
         ],

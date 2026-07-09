@@ -40,7 +40,10 @@ const run = (cmd, args, env) =>
 if (mode === 'pre-bash') {
   const command = evt.tool_input?.command ?? ''
   if (!command) process.exit(0)
-  const r = run('sh', [join(HOOKS_DIR, 'git-safety/git-safety.sh'), command])
+  const r = run(process.execPath, [
+    join(HOOKS_DIR, 'git-safety/git-safety.mjs'),
+    command,
+  ])
   if (r.status === 2) {
     process.stderr.write(r.stderr ?? '')
     process.exit(2)
@@ -56,8 +59,8 @@ if (mode === 'post-edit') {
     ''
   if (!p) process.exit(0)
   let blocked = null
-  const cp = run('sh', [
-    join(HOOKS_DIR, 'config-protection/config-protection.sh'),
+  const cp = run(process.execPath, [
+    join(HOOKS_DIR, 'config-protection/config-protection.mjs'),
     p,
   ])
   if (cp.status === 2) blocked = cp.stderr

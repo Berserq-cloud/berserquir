@@ -36,7 +36,10 @@ const reply = (obj) => {
 if (mode === 'before-shell') {
   const command = evt.command ?? evt.tool_input?.command ?? ''
   if (!command) reply({ permission: 'allow' })
-  const r = run('sh', [join(HOOKS_DIR, 'git-safety/git-safety.sh'), command])
+  const r = run(process.execPath, [
+    join(HOOKS_DIR, 'git-safety/git-safety.mjs'),
+    command,
+  ])
   if (r.status === 2)
     reply({
       permission: 'deny',
@@ -50,8 +53,8 @@ if (mode === 'after-edit') {
   const p = evt.file_path ?? evt.filePath ?? evt.path ?? ''
   if (!p) process.exit(0)
   let violation = ''
-  const cp = run('sh', [
-    join(HOOKS_DIR, 'config-protection/config-protection.sh'),
+  const cp = run(process.execPath, [
+    join(HOOKS_DIR, 'config-protection/config-protection.mjs'),
     p,
   ])
   if (cp.status === 2) violation += cp.stderr ?? ''

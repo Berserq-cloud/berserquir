@@ -499,9 +499,9 @@ async function doctor() {
 
   // 2) guardrails intact
   for (const g of [
-    'git-safety/git-safety.sh',
-    'secret-scan/secret-scan.sh',
-    'config-protection/config-protection.sh',
+    'git-safety/git-safety.mjs',
+    'secret-scan/secret-scan.mjs',
+    'config-protection/config-protection.mjs',
     'memory-validate/memory-validate.mjs',
   ])
     add(
@@ -550,11 +550,11 @@ async function doctor() {
   )
   // informational (0 points): native git pre-commit hook activation
   if (
-    exists('.berserqir/hooks/commit-quality/commit-quality.sh') &&
+    exists('.berserqir/hooks/commit-quality/commit-quality.mjs') &&
     !exists('.git/hooks/pre-commit')
   )
     info(
-      'ℹ commit-quality available but not active — ln -s ../../.berserqir/hooks/commit-quality/commit-quality.sh .git/hooks/pre-commit',
+      'ℹ commit-quality available but not active — create .git/hooks/pre-commit with: exec node .berserqir/hooks/commit-quality/commit-quality.mjs "$@"',
     )
   // informational (0 points): evolve-ready instinct clusters
   const instincts = readJson(

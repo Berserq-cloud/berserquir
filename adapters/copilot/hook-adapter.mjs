@@ -29,7 +29,7 @@ if (paths.length === 0) process.exit(0);
 // ---- run canonical guardrails per path ----
 let blocked = null;
 for (const p of paths) {
-  const cp = spawnSync("sh", [join(HOOKS_DIR, "config-protection/config-protection.sh"), p], { encoding: "utf8" });
+  const cp = spawnSync(process.execPath, [join(HOOKS_DIR, "config-protection/config-protection.mjs"), p], { encoding: "utf8" });
   if (cp.status === 2) blocked = cp.stderr;
 
   const mv = spawnSync(process.execPath, [join(HOOKS_DIR, "memory-validate/memory-validate.mjs"), p], { encoding: "utf8" });
