@@ -14,7 +14,7 @@ handoffs:
     agent: qa
     prompt: Verify the endpoint above against its acceptance criteria.
     send: true
-skills: [api-design, testing-discipline, observability]
+skills: [api-design, testing-discipline, observability, design-patterns]
 never: [components/**, pages/**, assets/**, infra/**]
 ---
 
