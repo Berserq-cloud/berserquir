@@ -12,6 +12,6 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
       - name: Smoke suite (syntax · guardrails · memory-validate · adapters · installer e2e)
         run: node scripts/smoke.mjs
