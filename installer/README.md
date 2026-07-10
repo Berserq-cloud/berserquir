@@ -163,7 +163,7 @@ Harnesses auto-load by path, so placement follows the **load regime**, not DRY d
 
 ### Role taxonomy & routing
 
-Three role types with hard tool discipline: **authority** (orchestrator — architecturally cannot edit; architect; product), **execution** (senior/pleno/junior per area — junior is the cheap fast-path lane and always escalates on auth, payments, migrations), **gate** (qa, security — read-only). `model: top|mid|fast` resolves per harness and plan via `models.json` (seeded by `/init` question 8, survives updates). Parallel wave cap = deliberation quorum = **3**.
+Three role types with hard tool discipline: **authority** (orchestrator — architecturally cannot edit; architect; product), **execution** (senior/pleno/junior per area — junior is the cheap fast-path lane with **no terminal at all**, and always escalates on auth, payments, migrations), **gate** (qa, security — read-only). Terminal access is tiered: pleno runs simple reversible commands, senior/orchestrator get the full surface — but destructive commands are human-gated at every tier (cmd-safety). `model: top|mid|fast` resolves per harness and plan via `models.json` (seeded by `/init` question 8, survives updates). Parallel wave cap = deliberation quorum = **3**.
 
 ### The control plane (delegation · escalation · deliberation · mentorship)
 
