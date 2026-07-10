@@ -31,11 +31,29 @@ const paths = [
 const tool = evt.tool_name ?? evt.tool ?? 'edit'
 const agent = evt.agent ?? evt.agent_name ?? 'copilot'
 
+// Read-only tools never gate and never journal — a read is not a mutation.
+// The berserqir.json matcher filters to edit|create|apply_patch, but payload
+// shapes vary across Copilot builds; this is defense in depth after a real
+// incident where a read of an over-budget memory file blocked the chat
+// (deadlocking the very /compress that would fix it).
+if (/read|grep|search|list|fetch|glob|usage|semantic|dir/i.test(tool))
+  process.exit(0)
+
 if (paths.length === 0) process.exit(0)
 
 // ---- run canonical guardrails per path ----
 let blocked = null
 for (const p of paths) {
+  // journal FIRST (best-effort, never blocks) — its auto-rotate archives an
+  // over-budget §Journal before memory-validate gates on the same budget
+  const journal = join(HOOKS_DIR, 'memory-journal/memory-journal.mjs')
+  if (existsSync(journal)) {
+    const j = spawnSync(process.execPath, [journal, agent, tool, p], {
+      encoding: 'utf8',
+    })
+    if (j.stderr) process.stderr.write(j.stderr)
+  }
+
   const cp = spawnSync(
     process.execPath,
     [join(HOOKS_DIR, 'config-protection/config-protection.mjs'), p],
@@ -49,11 +67,6 @@ for (const p of paths) {
     { encoding: 'utf8' },
   )
   if (mv.status === 2) blocked = (blocked ?? '') + mv.stderr
-
-  // deterministic journal (best-effort, never blocks)
-  const journal = join(HOOKS_DIR, 'memory-journal/memory-journal.mjs')
-  if (existsSync(journal))
-    spawnSync(process.execPath, [journal, agent, tool, p], { encoding: 'utf8' })
 
   // advisories (stray root docs, front slop/DESIGN drift) — surface, never block
   for (const adv of [

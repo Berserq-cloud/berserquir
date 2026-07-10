@@ -164,7 +164,10 @@ check(
     dirty,
     'try { x() } catch (e) {}\nconsole.log(1)\nconsole.log(2)\nfetch("http://localhost:3000/api")\n',
   )
-  const rb = node([join(ROOT, 'core/hooks/back-quality/back-quality.mjs'), dirty])
+  const rb = node([
+    join(ROOT, 'core/hooks/back-quality/back-quality.mjs'),
+    dirty,
+  ])
   check(
     'back-quality flags leftovers but exits 0 (advisory by design)',
     rb.status === 0 &&
@@ -235,6 +238,43 @@ check(
       'x'.repeat(13000),
   ) === 2,
 )
+// journal auto-rotate: over-budget §Journal is archived, agent sections kept
+{
+  const memDir = join(TMP, 'mem-rotate')
+  mkdirSync(memDir, { recursive: true })
+  const bigJournal = Array.from(
+    { length: 400 },
+    (_, i) => `- 2026-07-10T00:00:00Z · agent · edit · src/file-${i}.ts`,
+  ).join('\n')
+  writeFileSync(
+    join(memDir, 'memory-short.md'),
+    `# memory-short\n\n## Focus\n\nkeep me\n\n## Journal\n\n${bigJournal}\n\n## Errors & learnings\n\n-\n\n## Open threads\n\n- keep me too\n`,
+  )
+  const jr = node(
+    [
+      join(ROOT, 'core/hooks/memory-journal/memory-journal.mjs'),
+      'agent',
+      'edit',
+      'src/x.ts',
+    ],
+    { env: { ...process.env, BERSERQIR_MEMORY_DIR: memDir } },
+  )
+  const after = readFileSync(join(memDir, 'memory-short.md'), 'utf8')
+  check(
+    'journal auto-rotates over-budget memory-short',
+    jr.status === 0 &&
+      jr.stderr.includes('auto-archived') &&
+      after.length <= 2500 * 4 &&
+      after.includes('keep me') &&
+      after.includes('keep me too') &&
+      existsSync(join(memDir, 'compressions')),
+  )
+  const validate = node([
+    join(ROOT, 'core/hooks/memory-validate/memory-validate.mjs'),
+    join(memDir, 'memory-short.md'),
+  ])
+  check('rotated memory-short passes the budget gate', validate.status === 0)
+}
 
 // ---------- 4) adapters compile cleanly ----------
 console.log('\n[4/5] adapters')

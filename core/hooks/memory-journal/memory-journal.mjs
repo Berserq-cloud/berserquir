@@ -7,7 +7,7 @@
 //   or args: memory-journal.mjs <agent> <tool> <target>
 // Env: BERSERQIR_MEMORY_DIR (default: .berserqir/memory)
 
-import { readFileSync, writeFileSync, existsSync } from 'node:fs'
+import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs'
 import { join } from 'node:path'
 
 const MEMORY_DIR = process.env.BERSERQIR_MEMORY_DIR || '.berserqir/memory'
@@ -47,6 +47,50 @@ const insertAt = (() => {
 })()
 
 writeFileSync(FILE, raw.slice(0, insertAt) + line + '\n' + raw.slice(insertAt))
+
+// auto-rotate (deterministic half of /compress): the journal is hook-written
+// and unbounded — when memory-short blows its size budget, archive the whole
+// file verbatim and reset ONLY §Journal. Agent-owned sections (§Focus,
+// §Errors & learnings, §Open threads) carry over untouched; nothing is lost
+// (the archive is verbatim). The semantic distillation stays agent work
+// (/compress), nudged below — hooks detect, agents think.
+const BUDGET_CHARS = 2500 * 4 // mirrors memory-validate (sizeBudget × CHARS_PER_TOKEN)
+const grown = readFileSync(FILE, 'utf8')
+if (grown.length > BUDGET_CHARS) {
+  const jIdx = grown.indexOf(marker)
+  const headingEnd = grown.indexOf('\n', jIdx) + 1
+  const comment = grown.slice(headingEnd).match(/^\s*<!--[\s\S]*?-->\s*\n/)
+  const nextSection = grown.indexOf('\n## ', headingEnd)
+  const tail = nextSection === -1 ? '' : grown.slice(nextSection)
+  const pointer = `- ${ts} · system · autocompact · journal archived to compressions/`
+  const kept =
+    grown.slice(0, headingEnd) + (comment ? comment[0] : '') + pointer + tail
+  if (kept.length <= BUDGET_CHARS) {
+    // journal is the bulk — rotate it
+    const dir = join(MEMORY_DIR, 'compressions')
+    mkdirSync(dir, { recursive: true })
+    const stamp = ts.replace(/[:.]/g, '-')
+    const archiveName = `${stamp}-autocompact.md`
+    writeFileSync(join(dir, archiveName), grown)
+    writeFileSync(
+      FILE,
+      grown.slice(0, headingEnd) +
+        (comment ? comment[0] : '') +
+        pointer.replace('compressions/', `compressions/${archiveName}`) +
+        '\n' +
+        tail,
+    )
+    console.error(
+      `[berserqir:memory-journal] memory-short.md exceeded its size budget — journal auto-archived to compressions/${archiveName} (agent sections kept). Run /berserqir compress to distill learnings when convenient.`,
+    )
+  } else {
+    // the agent-owned sections are the bulk — rotation won't fix it; only the
+    // semantic pass can distill them. No archive spam, just the nudge.
+    console.error(
+      '[berserqir:memory-journal] memory-short.md is over budget and the bulk is in agent sections (§Focus/§Errors/§Open threads) — run /berserqir compress.',
+    )
+  }
+}
 
 // strategic compact (ECC pattern, stateless): when the journal grows long,
 // suggest /compress proactively instead of waiting for the size budget to blow.

@@ -57,6 +57,17 @@ if (mode === 'after-edit') {
   const p = evt.file_path ?? evt.filePath ?? evt.path ?? ''
   if (!p) process.exit(0)
   let violation = ''
+  // journal FIRST (best-effort; stderr carries compress/evolve nudges) — its
+  // auto-rotate archives an over-budget §Journal before memory-validate gates
+  const journal = join(HOOKS_DIR, 'memory-journal/memory-journal.mjs')
+  if (existsSync(journal)) {
+    const j = run(
+      process.execPath,
+      [journal, evt.agent ?? 'cursor', 'edit', p],
+      { BERSERQIR_MEMORY_DIR: MEMORY_DIR },
+    )
+    if (j.stderr) violation += j.stderr
+  }
   const cp = run(process.execPath, [
     join(HOOKS_DIR, 'config-protection/config-protection.mjs'),
     p,
@@ -67,16 +78,6 @@ if (mode === 'after-edit') {
     p,
   ])
   if (mv.status === 2) violation += mv.stderr ?? ''
-  // deterministic journal (best-effort; stderr carries compress/evolve nudges)
-  const journal = join(HOOKS_DIR, 'memory-journal/memory-journal.mjs')
-  if (existsSync(journal)) {
-    const j = run(
-      process.execPath,
-      [journal, evt.agent ?? 'cursor', 'edit', p],
-      { BERSERQIR_MEMORY_DIR: MEMORY_DIR },
-    )
-    if (j.stderr) violation += j.stderr
-  }
   // advisories (stray root docs, front slop/DESIGN drift) — surface, never block
   for (const adv of [
     'stray-doc/stray-doc.mjs',

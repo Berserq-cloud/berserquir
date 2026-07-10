@@ -104,7 +104,8 @@ for (const m of src.matchAll(/line-height:\s*(0?\.\d+|1\.[0-2])\b(?!\d)/g)) {
 }
 
 // ── copy tells (markup files only) ──────────────────────────────────────────
-if (MARKUP_EXT.has(ext)) {  // ── a11y signals ──
+if (MARKUP_EXT.has(ext)) {
+  // ── a11y signals ──
   for (const m of src.matchAll(/<img\b[^>]*>/gi)) {
     if (!/\balt\s*=|\{\s*\.\.\./.test(m[0])) {
       flag(
