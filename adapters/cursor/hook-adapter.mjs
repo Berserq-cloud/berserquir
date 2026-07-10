@@ -36,7 +36,10 @@ const reply = (obj) => {
 if (mode === 'before-shell') {
   const command = evt.command ?? evt.tool_input?.command ?? ''
   if (!command) reply({ permission: 'allow' })
-  for (const guard of ['git-safety/git-safety.mjs', 'cmd-safety/cmd-safety.mjs']) {
+  for (const guard of [
+    'git-safety/git-safety.mjs',
+    'cmd-safety/cmd-safety.mjs',
+  ]) {
     const g = join(HOOKS_DIR, guard)
     if (!existsSync(g)) continue
     const r = run(process.execPath, [g, command])
@@ -75,7 +78,10 @@ if (mode === 'after-edit') {
     if (j.stderr) violation += j.stderr
   }
   // advisories (stray root docs, front slop/DESIGN drift) — surface, never block
-  for (const adv of ['stray-doc/stray-doc.mjs', 'front-quality/front-quality.mjs']) {
+  for (const adv of [
+    'stray-doc/stray-doc.mjs',
+    'front-quality/front-quality.mjs',
+  ]) {
     const a = join(HOOKS_DIR, adv)
     if (!existsSync(a)) continue
     const r = run(process.execPath, [a, p])

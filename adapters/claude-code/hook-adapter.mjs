@@ -40,7 +40,10 @@ const run = (cmd, args, env) =>
 if (mode === 'pre-bash') {
   const command = evt.tool_input?.command ?? ''
   if (!command) process.exit(0)
-  for (const guard of ['git-safety/git-safety.mjs', 'cmd-safety/cmd-safety.mjs']) {
+  for (const guard of [
+    'git-safety/git-safety.mjs',
+    'cmd-safety/cmd-safety.mjs',
+  ]) {
     const g = join(HOOKS_DIR, guard)
     if (!existsSync(g)) continue
     const r = run(process.execPath, [g, command])
@@ -81,7 +84,10 @@ if (mode === 'post-edit') {
     if (j.stderr) process.stderr.write(j.stderr)
   }
   // advisories (stray root docs, front slop/DESIGN drift) — surface, never block
-  for (const adv of ['stray-doc/stray-doc.mjs', 'front-quality/front-quality.mjs']) {
+  for (const adv of [
+    'stray-doc/stray-doc.mjs',
+    'front-quality/front-quality.mjs',
+  ]) {
     const a = join(HOOKS_DIR, adv)
     if (!existsSync(a)) continue
     const r = run(process.execPath, [a, p])

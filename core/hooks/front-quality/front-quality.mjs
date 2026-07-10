@@ -25,7 +25,15 @@ const target = process.argv[2]
 if (!target) process.exit(0)
 
 const STYLE_EXT = new Set(['.css', '.scss', '.sass', '.less'])
-const MARKUP_EXT = new Set(['.html', '.jsx', '.tsx', '.vue', '.svelte', '.astro', '.mdx'])
+const MARKUP_EXT = new Set([
+  '.html',
+  '.jsx',
+  '.tsx',
+  '.vue',
+  '.svelte',
+  '.astro',
+  '.mdx',
+])
 const ext = extname(target).toLowerCase()
 if (!STYLE_EXT.has(ext) && !MARKUP_EXT.has(ext)) process.exit(0)
 
@@ -44,25 +52,40 @@ if (/(-webkit-)?background-clip:\s*text|\bbg-clip-text\b/.test(src))
   flag('gradient-text', 'solid color; emphasis via weight/size')
 
 if (/border-left:\s*[2-9]px\s+solid|\bborder-l-[2-9]\b/.test(src))
-  flag('side-stripe accent', 'the #1 AI tell — full border, bg tint, or nothing')
+  flag(
+    'side-stripe accent',
+    'the #1 AI tell — full border, bg tint, or nothing',
+  )
 
 if (
   /linear-gradient\([^)]*\b(purple|violet|indigo|fuchsia)\b/i.test(src) ||
   /linear-gradient\([^)]*#(8b5cf6|7c3aed|a855f7|9333ea|6d28d9)/i.test(src)
 )
-  flag('AI color palette', 'purple/violet gradients are the training-data reflex')
+  flag(
+    'AI color palette',
+    'purple/violet gradients are the training-data reflex',
+  )
 
 // cubic-bezier overshoot (y1/y2 outside [0,1] = bounce/elastic feel)
 for (const m of src.matchAll(/cubic-bezier\(\s*([^)]+)\)/g)) {
   const args = m[1].split(',').map((n) => parseFloat(n))
-  if (args.length === 4 && (args[1] < 0 || args[1] > 1 || args[3] < 0 || args[3] > 1)) {
-    flag('bounce/elastic easing', 'real objects decelerate — use ease-out quart/quint/expo')
+  if (
+    args.length === 4 &&
+    (args[1] < 0 || args[1] > 1 || args[3] < 0 || args[3] > 1)
+  ) {
+    flag(
+      'bounce/elastic easing',
+      'real objects decelerate — use ease-out quart/quint/expo',
+    )
     break
   }
 }
 
 if (/transition[^;{}]*\b(width|height|top|left|margin|padding)\b/.test(src))
-  flag('layout-property transition', 'animate transform/opacity — layout props thrash')
+  flag(
+    'layout-property transition',
+    'animate transform/opacity — layout props thrash',
+  )
 
 // ── quality signals ─────────────────────────────────────────────────────────
 for (const m of src.matchAll(/font-size:\s*(\d+)px|\btext-\[(\d+)px\]/g)) {
@@ -83,13 +106,19 @@ for (const m of src.matchAll(/line-height:\s*(0?\.\d+|1\.[0-2])\b(?!\d)/g)) {
 // ── copy tells (markup files only) ──────────────────────────────────────────
 if (MARKUP_EXT.has(ext)) {
   if ((src.match(/—/g) ?? []).length > 2)
-    flag('em-dash overuse', '>2 em-dashes reads as AI cadence — commas/colons/periods')
+    flag(
+      'em-dash overuse',
+      '>2 em-dashes reads as AI cadence — commas/colons/periods',
+    )
 
   const buzz = src.match(
     /\b(streamline|empower|supercharge|world-class|enterprise-grade|next-generation|cutting-edge|best-in-class|game-chang\w*)\b/gi,
   )
   if (buzz && buzz.length >= 2)
-    flag('marketing buzzwords', `${[...new Set(buzz.map((b) => b.toLowerCase()))].join(', ')} — say what it literally does`)
+    flag(
+      'marketing buzzwords',
+      `${[...new Set(buzz.map((b) => b.toLowerCase()))].join(', ')} — say what it literally does`,
+    )
 }
 
 // ── DESIGN.md color drift (the project's own law, when it exists) ──────────

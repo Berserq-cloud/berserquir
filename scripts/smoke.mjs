@@ -120,22 +120,37 @@ check(
     slop,
     '<h1 className="bg-clip-text">Streamline your world-class workflow</h1>',
   )
-  const r = node([join(ROOT, 'core/hooks/front-quality/front-quality.mjs'), slop])
+  const r = node([
+    join(ROOT, 'core/hooks/front-quality/front-quality.mjs'),
+    slop,
+  ])
   check(
     'front-quality flags slop but exits 0 (advisory by design)',
     r.status === 0 && r.stderr.includes('front-quality'),
   )
   const clean = join(TMP, 'Clean.tsx')
   writeFileSync(clean, '<p>Send message</p>')
-  const rc = node([join(ROOT, 'core/hooks/front-quality/front-quality.mjs'), clean])
+  const rc = node([
+    join(ROOT, 'core/hooks/front-quality/front-quality.mjs'),
+    clean,
+  ])
   check('front-quality silent on clean file', rc.status === 0 && !rc.stderr)
-  const sd = node([join(ROOT, 'core/hooks/stray-doc/stray-doc.mjs'), 'NOTES.md'])
+  const sd = node([
+    join(ROOT, 'core/hooks/stray-doc/stray-doc.mjs'),
+    'NOTES.md',
+  ])
   check(
     'stray-doc warns on root NOTES.md but exits 0',
     sd.status === 0 && sd.stderr.includes('stray-doc'),
   )
-  const sdok = node([join(ROOT, 'core/hooks/stray-doc/stray-doc.mjs'), 'README.md'])
-  check('stray-doc silent on canonical README.md', sdok.status === 0 && !sdok.stderr)
+  const sdok = node([
+    join(ROOT, 'core/hooks/stray-doc/stray-doc.mjs'),
+    'README.md',
+  ])
+  check(
+    'stray-doc silent on canonical README.md',
+    sdok.status === 0 && !sdok.stderr,
+  )
 }
 
 // ---------- 3) memory-validate cases ----------
