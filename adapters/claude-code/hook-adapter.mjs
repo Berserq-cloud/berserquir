@@ -158,6 +158,16 @@ if (mode === 'stop') {
   if (evt.stop_hook_active) process.exit(0) // never loop
   const shortPath = join(MEMORY_DIR, 'memory-short.md')
   if (!existsSync(shortPath)) process.exit(0) // not seeded — /init's job, not ours
+  // session-verify: batch-run the project's own typecheck/lint over the
+  // session's touched files — once, at Stop, instead of per edit
+  const sv = join(HOOKS_DIR, 'session-verify/session-verify.mjs')
+  if (existsSync(sv)) {
+    const r = run(process.execPath, [sv], { BERSERQIR_MEMORY_DIR: MEMORY_DIR })
+    if (r.status === 2) {
+      process.stderr.write(r.stderr ?? '')
+      process.exit(2) // block stop once; retry carries stop_hook_active
+    }
+  }
   const ageMinutes = (Date.now() - statSync(shortPath).mtimeMs) / 60000
   if (ageMinutes > 120) {
     process.stderr.write(

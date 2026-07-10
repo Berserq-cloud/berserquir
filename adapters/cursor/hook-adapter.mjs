@@ -102,6 +102,13 @@ if (mode === 'after-edit') {
 if (mode === 'stop') {
   const shortPath = join(MEMORY_DIR, 'memory-short.md')
   if (!existsSync(shortPath)) process.exit(0)
+  // session-verify: batch-run the project's own typecheck/lint over the
+  // session's touched files (observational — Cursor stop carries no deny)
+  const sv = join(HOOKS_DIR, 'session-verify/session-verify.mjs')
+  if (existsSync(sv)) {
+    const r = run(process.execPath, [sv], { BERSERQIR_MEMORY_DIR: MEMORY_DIR })
+    if (r.status === 2) reply({ agentMessage: (r.stderr ?? '').trim() })
+  }
   const ageMinutes = (Date.now() - statSync(shortPath).mtimeMs) / 60000
   if (ageMinutes > 120)
     reply({

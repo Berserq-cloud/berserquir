@@ -275,6 +275,67 @@ check(
   ])
   check('rotated memory-short passes the budget gate', validate.status === 0)
 }
+// context-monitor: 6 consecutive same-target entries → loop nudge
+{
+  const memDir = join(TMP, 'mem-loop')
+  mkdirSync(memDir, { recursive: true })
+  const same = Array.from(
+    { length: 5 },
+    () => '- 2026-07-10T00:00:00Z · agent · edit · src/app.ts',
+  ).join('\n')
+  writeFileSync(
+    join(memDir, 'memory-short.md'),
+    `# m\n\n## Focus\n\nx\n\n## Journal\n\n${same}\n\n## Errors & learnings\n\n-\n\n## Open threads\n\n-\n`,
+  )
+  const lr = node(
+    [
+      join(ROOT, 'core/hooks/memory-journal/memory-journal.mjs'),
+      'agent',
+      'edit',
+      'src/app.ts',
+    ],
+    { env: { ...process.env, BERSERQIR_MEMORY_DIR: memDir } },
+  )
+  check(
+    'context-monitor flags a 6× same-file loop',
+    lr.status === 0 && lr.stderr.includes('possible loop'),
+  )
+}
+// session-verify: project's own failing typecheck blocks the Stop
+{
+  const proj = join(TMP, 'verify-proj')
+  const projMem = join(proj, '.berserqir', 'memory')
+  mkdirSync(join(proj, 'src'), { recursive: true })
+  mkdirSync(projMem, { recursive: true })
+  writeFileSync(join(proj, 'src', 'x.ts'), 'export const a = 1\n')
+  writeFileSync(
+    join(projMem, 'memory-short.md'),
+    '# m\n\n## Focus\n\nx\n\n## Journal\n\n- 2026-07-10T00:00:00Z · agent · edit · src/x.ts\n\n## Errors & learnings\n\n-\n\n## Open threads\n\n-\n',
+  )
+  writeFileSync(
+    join(proj, 'package.json'),
+    '{"scripts":{"typecheck":"node -e \\"process.exit(1)\\""}}',
+  )
+  const sv = (env = {}) =>
+    node([join(ROOT, 'core/hooks/session-verify/session-verify.mjs')], {
+      cwd: proj,
+      env: { ...process.env, ...env },
+    })
+  const fail = sv()
+  check(
+    'session-verify blocks Stop on failing project typecheck',
+    fail.status === 2 && fail.stderr.includes('session-verify'),
+  )
+  check(
+    'session-verify opt-out works',
+    sv({ BERSERQIR_SESSION_VERIFY: '0' }).status === 0,
+  )
+  writeFileSync(
+    join(proj, 'package.json'),
+    '{"scripts":{"typecheck":"node -e \\"process.exit(0)\\""}}',
+  )
+  check('session-verify passes on green checks', sv().status === 0)
+}
 
 // ---------- 4) adapters compile cleanly ----------
 console.log('\n[4/5] adapters')

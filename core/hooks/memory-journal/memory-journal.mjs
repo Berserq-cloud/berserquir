@@ -100,6 +100,31 @@ if (journalLines > 0 && journalLines % 40 === 0)
     `[berserqir:memory-journal] journal has ${journalLines} entries — consider /berserqir compress at the next logical break`,
   )
 
+// context-monitor (stateless, journal-derived): two dumb-zone signals that a
+// working agent cannot see from inside — detection here, thinking stays agent-side.
+{
+  const targets = [
+    ...readFileSync(FILE, 'utf8')
+      .slice(idx)
+      .matchAll(/^- .+? · .+? · .+? · (.+)$/gm),
+  ].map((m) => m[1].trim())
+  // tool loop: the newest N entries (top of §Journal) all hit the same file
+  const LOOP = 6
+  if (
+    targets.length >= LOOP &&
+    !targets[0].includes('.berserqir/') &&
+    targets.slice(0, LOOP).every((t) => t === targets[0])
+  )
+    console.error(
+      `[berserqir:memory-journal] last ${LOOP} actions all hit ${targets[0]} — possible loop. Step back: re-read the error, check memory §Errors, or escalate instead of retrying.`,
+    )
+  // sprawl: session touched an unusually wide file surface — checkpoint time
+  if (new Set(targets).size === 25)
+    console.error(
+      '[berserqir:memory-journal] this session touched 25+ distinct files — consider /berserqir checkpoint (commit + memory sync) before going wider.',
+    )
+}
+
 // evolve-readiness (stateless): when instincts.json is written (e.g. by /learn),
 // flag mature clusters at the natural moment — detection is deterministic,
 // promotion stays agent-side (/evolve) behind its human ALIGN gate.

@@ -23,6 +23,8 @@
 | edit `Gallery.html` with `<img>` missing `alt` | front-quality | exit 0 + a11y finding |
 | edit `service.ts` with empty `catch {}` + `console.log` | back-quality | exit 0 + findings on stderr |
 | edit `service.test.ts` with `console.log` | back-quality | exit 0, silent (tests exempt) |
+| Stop after touching JS/TS, project `typecheck` script failing | session-verify | exit 2 + bounded output (fix before finishing) |
+| Stop with green project checks (or no tooling) | session-verify | exit 0, silent |
 | invalid `memory-medium.json` (bad FEAT id) | memory-validate | exit 2 |
 | oversized `memory-short.md` | memory-validate | exit 2 + `/compress` hint |
 
