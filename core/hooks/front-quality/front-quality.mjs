@@ -104,7 +104,23 @@ for (const m of src.matchAll(/line-height:\s*(0?\.\d+|1\.[0-2])\b(?!\d)/g)) {
 }
 
 // ── copy tells (markup files only) ──────────────────────────────────────────
-if (MARKUP_EXT.has(ext)) {
+if (MARKUP_EXT.has(ext)) {  // ── a11y signals ──
+  for (const m of src.matchAll(/<img\b[^>]*>/gi)) {
+    if (!/\balt\s*=|\{\s*\.\.\./.test(m[0])) {
+      flag(
+        'img without alt',
+        'decorative → alt="" · informative → describe what it communicates',
+      )
+      break
+    }
+  }
+  if (/tab[iI]ndex\s*=\s*["'{]?\s*[1-9]/.test(src))
+    flag(
+      'positive tabindex',
+      'hijacks natural tab order — use 0 or -1 and fix DOM order instead',
+    )
+  if (ext === '.html' && /<html\b(?![^>]*\blang=)[^>]*>/i.test(src))
+    flag('html without lang', 'screen readers guess the language without it')
   if ((src.match(/—/g) ?? []).length > 2)
     flag(
       'em-dash overuse',

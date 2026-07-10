@@ -41,6 +41,10 @@ const PATTERNS = [
     'connection string with embedded password',
   ],
   [/eyJ[A-Za-z0-9_-]{20,}\.eyJ[A-Za-z0-9_-]{20,}/, 'JWT token'],
+  [/\b(sk|rk)_live_[A-Za-z0-9]{20,}/, 'Stripe live key'],
+  [/\bglpat-[A-Za-z0-9_-]{20,}/, 'GitLab personal access token'],
+  [/\bnpm_[A-Za-z0-9]{36,}/, 'npm access token'],
+  [/\bAIza[0-9A-Za-z_-]{35}/, 'Google API key'],
 ]
 for (const [re, kind] of PATTERNS) if (re.test(input)) block(kind)
 

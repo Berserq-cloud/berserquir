@@ -59,6 +59,7 @@ for (const p of paths) {
   for (const adv of [
     'stray-doc/stray-doc.mjs',
     'front-quality/front-quality.mjs',
+    'back-quality/back-quality.mjs',
   ]) {
     const a = join(HOOKS_DIR, adv)
     if (!existsSync(a)) continue

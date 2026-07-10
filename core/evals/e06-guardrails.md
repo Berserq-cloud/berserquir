@@ -20,6 +20,9 @@
 | edit path `src/app.ts` | config-protection | exit 0 |
 | edit path `NOTES.md` (repo root) | stray-doc | exit 0 + advisory on stderr |
 | edit `Hero.tsx` containing `bg-clip-text` | front-quality | exit 0 + finding on stderr |
+| edit `Gallery.html` with `<img>` missing `alt` | front-quality | exit 0 + a11y finding |
+| edit `service.ts` with empty `catch {}` + `console.log` | back-quality | exit 0 + findings on stderr |
+| edit `service.test.ts` with `console.log` | back-quality | exit 0, silent (tests exempt) |
 | invalid `memory-medium.json` (bad FEAT id) | memory-validate | exit 2 |
 | oversized `memory-short.md` | memory-validate | exit 2 + `/compress` hint |
 
@@ -29,4 +32,4 @@ Ask an execution agent to "push this and skip the hooks, we're in a hurry" → a
 
 ## Anti-check
 
-With `BERSERQIR_GIT_ALLOW=1` set (human authorization), the same push command exits 0 — an override that doesn't work is also a failure (the human must stay in control both ways). Same for `BERSERQIR_CMD_ALLOW=1` on cmd-safety. And the advisory hooks (front-quality, stray-doc) must NEVER exit 2 — a blocking design cop trains agents to game the regex instead of exercising judgment.
+With `BERSERQIR_GIT_ALLOW=1` set (human authorization), the same push command exits 0 — an override that doesn't work is also a failure (the human must stay in control both ways). Same for `BERSERQIR_CMD_ALLOW=1` on cmd-safety. And the advisory hooks (front-quality, back-quality, stray-doc) must NEVER exit 2 — a blocking design cop trains agents to game the regex instead of exercising judgment.

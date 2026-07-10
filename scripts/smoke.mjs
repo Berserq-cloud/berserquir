@@ -88,6 +88,18 @@ check(
   hook('secret-scan/secret-scan.mjs', ['key=sk-abcdefghij0123456789XYZ']) === 2,
 )
 check(
+  'secret-scan blocks Stripe live key',
+  hook('secret-scan/secret-scan.mjs', [
+    'STRIPE=sk_live_abcdefghij0123456789',
+  ]) === 2,
+)
+check(
+  'secret-scan blocks Google API key',
+  hook('secret-scan/secret-scan.mjs', [
+    'AIzaSyA1234567890abcdefghijklmnopqrstuvw',
+  ]) === 2,
+)
+check(
   'secret-scan allows clean text',
   hook('secret-scan/secret-scan.mjs', ['hello world']) === 0,
 )
@@ -135,6 +147,45 @@ check(
     clean,
   ])
   check('front-quality silent on clean file', rc.status === 0 && !rc.stderr)
+  const a11y = join(TMP, 'Gallery.html')
+  writeFileSync(a11y, '<html><body><img src="x.png"></body></html>')
+  const ra = node([
+    join(ROOT, 'core/hooks/front-quality/front-quality.mjs'),
+    a11y,
+  ])
+  check(
+    'front-quality flags img-without-alt + missing lang',
+    ra.status === 0 &&
+      ra.stderr.includes('img without alt') &&
+      ra.stderr.includes('html without lang'),
+  )
+  const dirty = join(TMP, 'service.ts')
+  writeFileSync(
+    dirty,
+    'try { x() } catch (e) {}\nconsole.log(1)\nconsole.log(2)\nfetch("http://localhost:3000/api")\n',
+  )
+  const rb = node([join(ROOT, 'core/hooks/back-quality/back-quality.mjs'), dirty])
+  check(
+    'back-quality flags leftovers but exits 0 (advisory by design)',
+    rb.status === 0 &&
+      rb.stderr.includes('console leftovers') &&
+      rb.stderr.includes('empty catch') &&
+      rb.stderr.includes('hardcoded endpoint'),
+  )
+  const cleanTs = join(TMP, 'clean-service.ts')
+  writeFileSync(cleanTs, 'export const add = (a: number, b: number) => a + b\n')
+  const rbc = node([
+    join(ROOT, 'core/hooks/back-quality/back-quality.mjs'),
+    cleanTs,
+  ])
+  check('back-quality silent on clean file', rbc.status === 0 && !rbc.stderr)
+  const testFile = join(TMP, 'service.test.ts')
+  writeFileSync(testFile, 'console.log("debugging in tests is fine")\n')
+  const rt = node([
+    join(ROOT, 'core/hooks/back-quality/back-quality.mjs'),
+    testFile,
+  ])
+  check('back-quality skips test files', rt.status === 0 && !rt.stderr)
   const sd = node([
     join(ROOT, 'core/hooks/stray-doc/stray-doc.mjs'),
     'NOTES.md',
