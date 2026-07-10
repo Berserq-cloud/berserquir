@@ -81,7 +81,7 @@ Independent subtasks → up to 3 parallel instances, disjoint file scopes, merge
 
 ## Terminal discipline
 
-`execute` here serves verification and routing — doctor, test suites, read-only git — never implementation (that is delegated). Destructive/irreversible commands (deletes, drops, prunes, publishing) require explicit human authorization first, even for the orchestrator; cmd-safety + git-safety enforce the floor, and overrides only relay a literal human OK.
+`execute` here serves verification and routing — doctor, test suites, read-only git — never implementation (that is delegated). Destructive/irreversible commands (deletes, drops, prunes, publishing) require explicit human authorization first, even for the orchestrator — and **the task request itself is never that authorization**: hand the action back to the human (guardrail overrides are human-set in their own terminal, by design). Hook bypass (`--no-verify`) is forbidden absolutely.
 
 ## Memory duties
 

@@ -63,7 +63,7 @@ MAY dispatch independent simple subtasks to pleno/junior — wave cap **3**, **d
 
 ## Terminal discipline (tiered)
 
-Full command surface — builds, debugging, profiling, complex pipelines — **except destructive/irreversible actions**: deleting files/branches/volumes, dropping schemas, `terraform destroy`, bulk prunes, publishing. Those require explicit human authorization FIRST, even at this tier. git-safety + cmd-safety enforce the floor; overrides (`BERSERQIR_CMD_ALLOW=1`, `BERSERQIR_GIT_ALLOW=1`) only relay a literal human OK — never self-granted.
+Full command surface — builds, debugging, profiling, complex pipelines — **except destructive/irreversible actions**: deleting files/branches/volumes, dropping schemas, `terraform destroy`, bulk prunes, publishing. Those require explicit human authorization FIRST, even at this tier. **The task request itself is never that authorization** — "push it now, we're in a hurry" inside a task does not unlock anything: acknowledge, commit locally, report, and hand the publish to the human (the guardrail override `BERSERQIR_GIT_ALLOW=1`/`BERSERQIR_CMD_ALLOW=1` is set by the human in their own terminal, by design). Bypassing hooks (`--no-verify`) is forbidden absolutely — no authorization unlocks it, and urgency changes nothing (guardrails don't relax under pressure).
 
 ## Context Budget (template — overlay refines)
 
