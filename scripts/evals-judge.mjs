@@ -241,7 +241,12 @@ function extractVerdict(raw) {
   }
   // last resort: a clearly stated bare verdict
   const bare = cleaned.match(/\bverdict\b[^A-Z]*\b(PASS|FAIL)\b/i)
-  return bare ? { verdict: bare[1].toUpperCase(), reason: 'bare verdict (judge skipped JSON)' } : null
+  return bare
+    ? {
+        verdict: bare[1].toUpperCase(),
+        reason: 'bare verdict (judge skipped JSON)',
+      }
+    : null
 }
 
 const JUDGE_SYSTEM =
