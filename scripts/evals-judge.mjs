@@ -34,11 +34,24 @@ if (!OR_KEY && !ANTH_KEY) {
   )
   process.exit(0)
 }
-const MODEL =
-  process.env.BERSERQIR_JUDGE_MODEL ||
-  (OR_KEY ? 'meta-llama/llama-3.3-70b-instruct:free' : 'claude-sonnet-4-5')
+// OpenRouter free-model fallback chain: different models are served by
+// different upstream providers, so one broken provider (e.g. a BYOK
+// integration on the account intercepting a model with an empty balance —
+// observed in the wild) doesn't kill the run. BERSERQIR_JUDGE_MODEL pins one.
+const FREE_CHAIN = [
+  'meta-llama/llama-3.3-70b-instruct:free',
+  'deepseek/deepseek-chat-v3-0324:free',
+  'google/gemini-2.0-flash-exp:free',
+  'mistralai/mistral-small-3.1-24b-instruct:free',
+]
+const CHAIN = process.env.BERSERQIR_JUDGE_MODEL
+  ? [process.env.BERSERQIR_JUDGE_MODEL]
+  : OR_KEY
+    ? FREE_CHAIN
+    : ['claude-sonnet-4-5']
+let modelIdx = 0
 console.log(
-  `[evals-judge] provider: ${OR_KEY ? 'openrouter' : 'anthropic'} · model: ${MODEL}`,
+  `[evals-judge] provider: ${OR_KEY ? 'openrouter' : 'anthropic'} · model: ${CHAIN[0]}${CHAIN.length > 1 ? ` (+${CHAIN.length - 1} fallbacks)` : ''}`,
 )
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
 const TMP = join(tmpdir(), `bq-judge-${process.pid}`)
@@ -69,27 +82,22 @@ const agentDef = (name) =>
 // OpenRouter speaks the OpenAI chat schema; Anthropic its Messages API.
 async function llm(system, user, maxTokens = 700) {
   if (OR_KEY) {
-    const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        authorization: `Bearer ${OR_KEY}`,
-        'content-type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: MODEL,
-        max_tokens: maxTokens,
-        messages: [
-          { role: 'system', content: system },
-          { role: 'user', content: user },
-        ],
-      }),
-    })
-    if (!res.ok)
-      throw new Error(`API ${res.status}: ${(await res.text()).slice(0, 300)}`)
-    const data = await res.json()
-    const text = data.choices?.[0]?.message?.content
-    if (!text) throw new Error('empty completion from OpenRouter')
-    return text
+    let lastErr
+    for (let i = modelIdx; i < CHAIN.length; i++) {
+      try {
+        const text = await openrouterCall(CHAIN[i], system, user, maxTokens)
+        modelIdx = i // sticky — keep the first model that works
+        return text
+      } catch (e) {
+        lastErr = e
+        if (i + 1 < CHAIN.length)
+          console.error(
+            `  ! ${CHAIN[i]} failed (${e.message.slice(0, 140)}) — trying ${CHAIN[i + 1]}`,
+          )
+      }
+    }
+    modelIdx = CHAIN.length - 1 // keep retrying the last one on later calls
+    throw lastErr
   }
   const res = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
@@ -99,7 +107,7 @@ async function llm(system, user, maxTokens = 700) {
       'content-type': 'application/json',
     },
     body: JSON.stringify({
-      model: MODEL,
+      model: CHAIN[0],
       max_tokens: maxTokens,
       system,
       messages: [{ role: 'user', content: user }],
@@ -112,6 +120,35 @@ async function llm(system, user, maxTokens = 700) {
     .filter((b) => b.type === 'text')
     .map((b) => b.text)
     .join('\n')
+}
+
+async function openrouterCall(model, system, user, maxTokens) {
+  const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      authorization: `Bearer ${OR_KEY}`,
+      'content-type': 'application/json',
+    },
+    body: JSON.stringify({
+      model,
+      max_tokens: maxTokens,
+      messages: [
+        { role: 'system', content: system },
+        { role: 'user', content: user },
+      ],
+    }),
+  })
+  if (!res.ok)
+    throw new Error(`API ${res.status}: ${(await res.text()).slice(0, 300)}`)
+  const data = await res.json()
+  // OpenRouter can return 200 with an embedded provider error
+  if (data.error)
+    throw new Error(
+      `provider error: ${JSON.stringify(data.error).slice(0, 300)}`,
+    )
+  const text = data.choices?.[0]?.message?.content
+  if (!text) throw new Error('empty completion from OpenRouter')
+  return text
 }
 
 const SCENARIOS = [
