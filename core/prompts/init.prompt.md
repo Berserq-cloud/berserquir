@@ -12,6 +12,8 @@ agent: product
 
 Source manifests (`package.json`, `go.mod`, `pyproject.toml`, `*.tf`, …) or a populated `src/` present → **brownfield**. Otherwise → **greenfield**. State the detection and confirm before proceeding.
 
+**Called as `/init refresh`?** → skip detection and run **Refresh mode** (below) instead.
+
 ## Greenfield — directed interview
 
 Ask **one question at a time**; push for specific answers (good: "solo founders evaluating a tool on their phone between meetings" — bad: "users"):
@@ -55,3 +57,13 @@ Confirm, correct, or add?
 | 9 | **human proficiency** — per installed area: novice / competent / senior. **Mandatory, and always a question, never a scan inference** — the repo reflects whoever wrote it, not the human operating the harness today | `human-profile.md` (seeded — calibrates `core/protocols/mentorship.md`) |
 
 Rules: never skip a block silently · a corrected block is re-presented before writing · block 9 is the only block with no scan evidence — it is an interview question in both init modes · finish with a summary of everything written + `memory-short.md` seeded with "bootstrap complete, drafts pending review" as the open thread.
+
+## Refresh mode — `/init refresh` (structure re-scan, no interview)
+
+For installs whose structural truth has drifted — modules moved, files deleted, `npx berserqir doctor` flags ghost graph nodes. Re-runs ONLY the structural scan:
+
+1. **Re-scan (read-only):** directory tree · manifests · structural decisions visible in code — exactly the evidence of brownfield blocks 2 and 5.
+2. **Present a diff, not a dump:** modules added/removed/renamed · graph nodes whose paths no longer exist · new implicit-ADR candidates since the last scan. One block at a time, same confirm-before-write rule.
+3. **Write after OK:** `codemap.md` + `graph.json` updates · new implicit ADRs → SPECS §ADR registry (`status: inferred-draft`).
+
+**Never touched in refresh:** memory-long, PRD, TESTS, DESIGN.md, human-profile, mcp-map, instincts — those carry human decisions, not scan output. Verification: `npx berserqir doctor` graph checks go green.

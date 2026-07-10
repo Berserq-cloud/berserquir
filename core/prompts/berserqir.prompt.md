@@ -10,7 +10,7 @@ The text after `/berserqir` is the **subcommand** (plus optional arguments). Mat
 
 | Subcommand | Action |
 |---|---|
-| `init` | Read `core/prompts/init.prompt.md` and follow it end-to-end (bootstrap is hosted by the **product** role — adopt its discipline). |
+| `init` | Read `core/prompts/init.prompt.md` and follow it end-to-end (bootstrap is hosted by the **product** role — adopt its discipline). Pass arguments through — `init refresh` re-scans structure only (codemap + graph), no interview. |
 | `compress` | Read `core/prompts/compress.prompt.md` and follow it end-to-end. |
 | `learn` | Read `core/prompts/learn.prompt.md` and follow it end-to-end (instinct extraction from the journal — writes only `instincts.json`). |
 | `evolve` | Read `core/prompts/evolve.prompt.md` and follow it end-to-end (instinct → skill promotion — eval-gated, requires human OK). |

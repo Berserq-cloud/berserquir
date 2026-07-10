@@ -30,6 +30,7 @@ for (let i = 0; i < argv.length; i++) {
   else if (a === '--yes' || a === '-y') flags.yes = true
   else if (a === '--force') flags.force = true
   else if (a === '--dry-run') flags.dryRun = true
+  else if (a === '--fix') flags.fix = true
   else if (a.startsWith('-')) die(`unknown flag ${a} (see: npx berserqir help)`)
   else positional.push(a)
 }
@@ -433,7 +434,7 @@ async function install({ isUpdate = false } = {}) {
 // ---------- doctor: deterministic health checks (zero-LLM) ----------
 // Fuses: ECC harness-audit (score + top actions) + Impeccable deterministic
 // detectors + AgentShield-lite (self-audit of the installed harness).
-async function doctor() {
+async function doctor(isRerun = false) {
   const target = path.resolve(flags.dir || '.')
   const checks = [] // { name, points, pass, fix }
   const add = (name, points, pass, fix) =>
@@ -580,7 +581,7 @@ async function doctor() {
     !exists('.git/hooks/pre-commit')
   )
     info(
-      'ℹ commit-quality available but not active — create .git/hooks/pre-commit with: exec node .berserqir/hooks/commit-quality/commit-quality.mjs "$@"',
+      'ℹ commit-quality available but not active — run: npx berserqir hook-install',
     )
   // informational (0 points): evolve-ready instinct clusters
   const instincts = readJson(
@@ -674,7 +675,116 @@ async function doctor() {
     .slice(0, 3)
     .forEach((c, i) => console.log(`    ${i + 1}) [${c.name}] ${c.fix}`))
   console.log('')
+
+  // --fix: apply the mechanical remedies (never the semantic ones — /init and
+  // /compress are agent work), then re-run the checks once to show the result.
+  if (flags.fix && !isRerun) {
+    let fixed = 0
+    // 1) exec bits on hook scripts
+    if (fs.existsSync(path.join(target, '.berserqir/hooks')))
+      for (const f of walk(path.join(target, '.berserqir/hooks')))
+        if (/\.(sh|mjs)$/.test(f)) {
+          try {
+            if (!(fs.statSync(f).mode & 0o111)) {
+              fs.chmodSync(f, 0o755)
+              fixed++
+            }
+          } catch {}
+        }
+    // 2) missing machine-seeded memory skeletons (instincts.json is an empty
+    //    template — deterministic; the semantic files stay /init's job)
+    const instPath = path.join(target, '.berserqir/memory/instincts.json')
+    const instTpl = path.join(
+      target,
+      '.berserqir/memory/templates/instincts.template.json',
+    )
+    if (!fs.existsSync(instPath) && fs.existsSync(instTpl)) {
+      fs.copyFileSync(instTpl, instPath)
+      info('fixed: seeded instincts.json from template')
+      fixed++
+    }
+    // 3) managed files missing/broken (wiring, guardrails) → update repairs them
+    const managedBroken = fails.some(
+      (c) => c.name.startsWith('guardrail') || c.name.startsWith('hooks wired'),
+    )
+    if (managedBroken) {
+      info('managed files broken — running: npx berserqir update --yes')
+      const r = spawnSync(
+        process.execPath,
+        [__filename, 'update', '--yes', '--dir', target],
+        { stdio: 'inherit' },
+      )
+      if (r.status === 0) fixed++
+    }
+    if (fixed) {
+      console.log(`  → applied ${fixed} fix(es); re-checking\n`)
+      return doctor(true)
+    }
+    info(
+      'nothing mechanically fixable — remaining actions need /init, /compress or a human decision',
+    )
+  }
+
   process.exitCode = fails.some((c) => c.points >= 3) ? 1 : 0
+}
+
+// ---------- hook-install: wire commit-quality as native git hooks ----------
+// Git runs hooks via its bundled sh on every OS (Windows included) — a
+// two-line sh wrapper calling node is the most portable activation there is.
+const GIT_HOOK_MARK = '# berserqir-managed'
+const GIT_HOOKS = {
+  'pre-commit':
+    'exec node .berserqir/hooks/commit-quality/commit-quality.mjs',
+  'commit-msg':
+    'exec node .berserqir/hooks/commit-quality/commit-quality.mjs "$1"',
+}
+function hookInstall() {
+  const target = path.resolve(flags.dir || '.')
+  const gitDir = path.join(target, '.git')
+  if (!fs.existsSync(gitDir))
+    die('no .git directory here — run inside a git repository')
+  if (
+    !fs.existsSync(
+      path.join(target, '.berserqir/hooks/commit-quality/commit-quality.mjs'),
+    )
+  )
+    die('commit-quality hook not found — run npx berserqir install first')
+  console.log(`\n  ⚔️  berserqir v${pkg.version} — hook-install\n`)
+  for (const [name, cmd] of Object.entries(GIT_HOOKS)) {
+    const p = path.join(gitDir, 'hooks', name)
+    if (fs.existsSync(p) && !fs.readFileSync(p, 'utf8').includes(GIT_HOOK_MARK)) {
+      if (!flags.force) {
+        warn(
+          `.git/hooks/${name} exists and is not berserqir-managed — skipped (--force overwrites, or chain it manually)`,
+        )
+        continue
+      }
+      warn(`overwriting existing .git/hooks/${name} (--force)`)
+    }
+    fs.mkdirSync(path.dirname(p), { recursive: true })
+    fs.writeFileSync(p, `#!/bin/sh\n${GIT_HOOK_MARK}\n${cmd}\n`)
+    try {
+      fs.chmodSync(p, 0o755)
+    } catch {
+      /* Git for Windows needs no chmod */
+    }
+    ok(`.git/hooks/${name} → commit-quality (${name === 'commit-msg' ? 'conventional-commit check' : 'secrets · size · debug leftovers'})`)
+  }
+  info('undo anytime: npx berserqir hook-uninstall · bypass once: BERSERQIR_COMMIT_ALLOW=1 git commit …')
+  console.log('')
+}
+function hookUninstall() {
+  const target = path.resolve(flags.dir || '.')
+  let removed = 0
+  for (const name of Object.keys(GIT_HOOKS)) {
+    const p = path.join(target, '.git/hooks', name)
+    if (fs.existsSync(p) && fs.readFileSync(p, 'utf8').includes(GIT_HOOK_MARK)) {
+      fs.rmSync(p)
+      removed++
+      ok(`removed .git/hooks/${name}`)
+    }
+  }
+  if (!removed) info('no berserqir-managed git hooks found — nothing removed')
 }
 
 // ---------- uninstall: remove managed files, preserve human work ----------
@@ -740,6 +850,7 @@ async function uninstall() {
   // manifest goes last (unless memory kept .berserqir alive)
   fs.rmSync(path.join(target, '.berserqir/manifest.json'), { force: true })
   fs.rmSync(path.join(target, '.berserqir/update-check.json'), { force: true }) // runtime cache — never user work
+  hookUninstall() // berserqir-managed git hooks are managed files too
   const bq = path.join(target, '.berserqir')
   if (fs.existsSync(bq) && walk(bq).length === 0)
     fs.rmSync(bq, { recursive: true, force: true })
@@ -759,7 +870,9 @@ function help() {
   Usage:
     npx berserqir install [options]   Install the harness into a repo
     npx berserqir update  [options]   Recompile + refresh an existing install
-    npx berserqir doctor  [--dir]     Deterministic health check (zero-LLM)
+    npx berserqir doctor  [--dir] [--fix]   Health check (zero-LLM); --fix applies mechanical repairs
+    npx berserqir hook-install [--dir]      Wire commit-quality as native git hooks (pre-commit + commit-msg)
+    npx berserqir hook-uninstall [--dir]    Remove the berserqir-managed git hooks
     npx berserqir uninstall [--dir]   Remove managed files (memory/SDD preserved)
     npx berserqir version             Print version
 
@@ -777,6 +890,8 @@ function help() {
   if (cmd === 'install') await install()
   else if (cmd === 'update') await install({ isUpdate: true })
   else if (cmd === 'doctor') await doctor()
+  else if (cmd === 'hook-install') hookInstall()
+  else if (cmd === 'hook-uninstall') hookUninstall()
   else if (cmd === 'uninstall') await uninstall()
   else if (cmd === 'version' || cmd === '--version' || cmd === '-v')
     console.log(pkg.version)

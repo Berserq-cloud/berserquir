@@ -40,7 +40,7 @@ const walk = (dir) =>
 
 // ---------- 1) syntax: every .mjs parses ----------
 console.log('\n[1/5] syntax')
-const mjsFiles = ['core', 'adapters', 'installer'].flatMap((d) =>
+const mjsFiles = ['core', 'adapters', 'installer', 'scripts'].flatMap((d) =>
   walk(join(ROOT, d)).filter((f) => f.endsWith('.mjs')),
 )
 for (const f of mjsFiles) {
@@ -426,6 +426,42 @@ for (const [h, wiring] of Object.entries(WIRING)) {
     `${h}: doctor exits 0 (no critical failures)`,
     doc.status === 0,
     (doc.stdout.match(/score:.*/) || [''])[0],
+  )
+}
+
+// hook-install / hook-uninstall + doctor --fix (against the copilot app)
+{
+  const app = join(TMP, 'app-copilot')
+  const bin = join(pkgDir, 'bin/berserqir.js')
+  const hi = node([bin, 'hook-install'], { cwd: app })
+  const pre = join(app, '.git/hooks/pre-commit')
+  const msg = join(app, '.git/hooks/commit-msg')
+  check(
+    'hook-install wires pre-commit + commit-msg',
+    hi.status === 0 &&
+      existsSync(pre) &&
+      readFileSync(pre, 'utf8').includes('berserqir-managed') &&
+      existsSync(msg),
+  )
+  const hu = node([bin, 'hook-uninstall'], { cwd: app })
+  check(
+    'hook-uninstall removes managed git hooks',
+    hu.status === 0 && !existsSync(pre) && !existsSync(msg),
+  )
+  rmSync(join(app, '.berserqir/hooks/git-safety'), {
+    recursive: true,
+    force: true,
+  })
+  rmSync(join(app, '.berserqir/memory/instincts.json'), { force: true })
+  const fix = node([bin, 'doctor', '--fix', '--yes'], {
+    cwd: app,
+    env: { ...process.env, BERSERQIR_NO_UPDATE_CHECK: '1' },
+  })
+  check(
+    'doctor --fix restores guardrail (via update) + seeds instincts',
+    fix.status === 0 &&
+      existsSync(join(app, '.berserqir/hooks/git-safety/git-safety.mjs')) &&
+      existsSync(join(app, '.berserqir/memory/instincts.json')),
   )
 }
 

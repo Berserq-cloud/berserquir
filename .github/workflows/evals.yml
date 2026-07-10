@@ -1,0 +1,36 @@
+name: Evals (LLM judge)
+
+# Behavioral regression layer — the smoke suite is deterministic; this replays
+# key eval scenarios against compiled agents with a model as judge.
+# Runs ONLY when the ANTHROPIC_API_KEY secret is configured: the script exits 0
+# with a skip notice when the key is absent, so fork PRs and keyless repos
+# never fail. Costs a few cents per run — push to main + manual trigger only.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: evals-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  judge:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Behavioral scenarios (skips without API key)
+        run: node scripts/evals-judge.mjs
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          BERSERQIR_NO_UPDATE_CHECK: '1'
