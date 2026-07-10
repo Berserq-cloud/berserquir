@@ -161,6 +161,7 @@ for (const a of ['copilot', 'claude-code', 'cursor']) {
 console.log('\n[5/5] installer e2e (npm pack)')
 const pack = run('npm', ['pack', '--pack-destination', TMP], {
   cwd: join(ROOT, 'installer'),
+  shell: process.platform === 'win32', // npm is npm.cmd on Windows — spawn needs a shell there
 })
 check('npm pack succeeds', pack.status === 0, pack.stderr.trim().slice(0, 200))
 const tarball = (pack.stdout || '').trim().split('\n').pop()

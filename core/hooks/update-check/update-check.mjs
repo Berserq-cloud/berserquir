@@ -53,6 +53,7 @@ if (mode === '--refresh') {
   const r = spawnSync('npm', ['view', 'berserqir', 'version'], {
     encoding: 'utf8',
     timeout: 10000,
+    shell: process.platform === 'win32', // npm is npm.cmd on Windows
   })
   const latest = (r.stdout || '').trim()
   const prev = readJson(CACHE) || {}

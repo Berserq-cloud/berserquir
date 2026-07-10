@@ -8,14 +8,22 @@ on:
   push:
     tags: ['v*']
 
+# One release at a time — never cancel a publish midway.
+concurrency:
+  group: publish
+  cancel-in-progress: false
+
 jobs:
   publish:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     permissions:
       contents: read
       id-token: write # npm provenance
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@v4
         with:
           node-version: 24
@@ -29,6 +37,8 @@ jobs:
           "
       - name: Smoke suite
         run: node scripts/smoke.mjs
+        env:
+          BERSERQIR_NO_UPDATE_CHECK: '1'
       - name: Publish to npm
         working-directory: installer
         run: npm publish --provenance --access public

@@ -640,6 +640,7 @@ async function doctor() {
     const r = spawnSync('npm', ['view', 'berserqir', 'version'], {
       encoding: 'utf8',
       timeout: 5000,
+      shell: process.platform === 'win32', // npm is npm.cmd on Windows
     })
     const latest = (r.stdout || '').trim()
     const newer = (a, b) => {

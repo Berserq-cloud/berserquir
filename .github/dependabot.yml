@@ -1,0 +1,10 @@
+# Zero-deps project: the ONLY third-party surface is the GitHub Actions themselves.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      actions:
+        patterns: ['*'] # one PR per week, not one per action
