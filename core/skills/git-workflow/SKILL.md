@@ -31,6 +31,17 @@ Implements FEAT-2026-07-08-contact-rate-limit per ADR-014.
 
 `<type>/<anchor-or-slug>` — e.g. `feat/contact-rate-limit`, `fix/DEBT-003`. Branch from main, short-lived, delete after merge (via PR, not `-D`).
 
+## Worktrees (parallel sessions — human workflow)
+
+Running more than one harness session on the same repo? Give each its own worktree instead of stash-dancing on one checkout:
+
+```sh
+git worktree add ../repo-feat-x feat/x   # session 2 works here
+git worktree remove ../repo-feat-x       # after merge
+```
+
+One session per worktree, one branch per worktree — sessions never trample each other's files, each `/sprint` commits in isolation, and memory conflicts surface at merge (a worktree shares `.git` but not the working files). **In-session subagents don't need this**: they share one checkout by harness design — that's what the parallelism protocol's disjoint file scopes are for (`core/protocols/parallelism.md`).
+
 ## Before any commit
 
 Working tree reviewed (`git status` + `git diff --staged`) · no unrelated files staged · secrets scan clean (hook enforces) · tests relevant to the diff pass.

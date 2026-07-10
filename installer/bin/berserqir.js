@@ -733,8 +733,7 @@ async function doctor(isRerun = false) {
 // two-line sh wrapper calling node is the most portable activation there is.
 const GIT_HOOK_MARK = '# berserqir-managed'
 const GIT_HOOKS = {
-  'pre-commit':
-    'exec node .berserqir/hooks/commit-quality/commit-quality.mjs',
+  'pre-commit': 'exec node .berserqir/hooks/commit-quality/commit-quality.mjs',
   'commit-msg':
     'exec node .berserqir/hooks/commit-quality/commit-quality.mjs "$1"',
 }
@@ -752,7 +751,10 @@ function hookInstall() {
   console.log(`\n  ⚔️  berserqir v${pkg.version} — hook-install\n`)
   for (const [name, cmd] of Object.entries(GIT_HOOKS)) {
     const p = path.join(gitDir, 'hooks', name)
-    if (fs.existsSync(p) && !fs.readFileSync(p, 'utf8').includes(GIT_HOOK_MARK)) {
+    if (
+      fs.existsSync(p) &&
+      !fs.readFileSync(p, 'utf8').includes(GIT_HOOK_MARK)
+    ) {
       if (!flags.force) {
         warn(
           `.git/hooks/${name} exists and is not berserqir-managed — skipped (--force overwrites, or chain it manually)`,
@@ -768,9 +770,13 @@ function hookInstall() {
     } catch {
       /* Git for Windows needs no chmod */
     }
-    ok(`.git/hooks/${name} → commit-quality (${name === 'commit-msg' ? 'conventional-commit check' : 'secrets · size · debug leftovers'})`)
+    ok(
+      `.git/hooks/${name} → commit-quality (${name === 'commit-msg' ? 'conventional-commit check' : 'secrets · size · debug leftovers'})`,
+    )
   }
-  info('undo anytime: npx berserqir hook-uninstall · bypass once: BERSERQIR_COMMIT_ALLOW=1 git commit …')
+  info(
+    'undo anytime: npx berserqir hook-uninstall · bypass once: BERSERQIR_COMMIT_ALLOW=1 git commit …',
+  )
   console.log('')
 }
 function hookUninstall() {
@@ -778,7 +784,10 @@ function hookUninstall() {
   let removed = 0
   for (const name of Object.keys(GIT_HOOKS)) {
     const p = path.join(target, '.git/hooks', name)
-    if (fs.existsSync(p) && fs.readFileSync(p, 'utf8').includes(GIT_HOOK_MARK)) {
+    if (
+      fs.existsSync(p) &&
+      fs.readFileSync(p, 'utf8').includes(GIT_HOOK_MARK)
+    ) {
       fs.rmSync(p)
       removed++
       ok(`removed .git/hooks/${name}`)
