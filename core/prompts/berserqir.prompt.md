@@ -1,7 +1,7 @@
 ---
 name: berserqir
-description: Berserqir command hub — dispatch /berserqir <command> to the harness workflows (init, compress, learn, evolve, evals, review, checkpoint, status).
-argument-hint: "init | compress | learn | evolve | evals | review | checkpoint | status | help"
+description: Berserqir command hub — dispatch /berserqir <command> to the harness workflows (init, compress, learn, evolve, sprint, evals, review, checkpoint, status).
+argument-hint: "init | compress | learn | evolve | sprint | evals | review | checkpoint | status | help"
 ---
 
 # /berserqir — Command Hub
@@ -14,6 +14,7 @@ The text after `/berserqir` is the **subcommand** (plus optional arguments). Mat
 | `compress` | Read `core/prompts/compress.prompt.md` and follow it end-to-end. |
 | `learn` | Read `core/prompts/learn.prompt.md` and follow it end-to-end (instinct extraction from the journal — writes only `instincts.json`). |
 | `evolve` | Read `core/prompts/evolve.prompt.md` and follow it end-to-end (instinct → skill promotion — eval-gated, requires human OK). |
+| `sprint` | Read `core/prompts/sprint.prompt.md` and follow it end-to-end (bounded-autonomy engineering loop — hosted by the **orchestrator**; pass the iteration count through, e.g. `sprint 5`). |
 | `evals` (or `run-evals`) | Read `core/prompts/run-evals.prompt.md` and follow it end-to-end. Pass any trailing arguments (e.g. an eval id like `e07`) through. |
 | `review` (or `code-review`) | Read `core/prompts/code-review.prompt.md` and follow it end-to-end (hosted by the **qa** gate — read-only). |
 | `checkpoint` | Run the memory-sync ritual §write-after-acting manually: update `memory-short.md` (§Focus, §Open threads, §Errors & learnings) and `memory-medium.json` if a feature moved; then suggest a conventional commit (with anchors) for the work in progress. Nothing is pushed. |

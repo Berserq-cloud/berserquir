@@ -31,7 +31,7 @@ Claude Code has no glob-scoped instruction files — apply these manually: **bef
 
 ## Commands
 
-`/berserqir <command>` is the hub: `init` · `compress` · `learn` · `evolve` · `evals` · `review` · `checkpoint` · `status` · `help`. Project commands (`/compress`, `/learn`, `/evolve`, `/run-evals`, `/code-review`) are equivalent. **For bootstrap use `/berserqir init`** (the project `init` command may collide with Claude Code's built-in `/init`).
+`/berserqir <command>` is the hub: `init` · `compress` · `learn` · `evolve` · `sprint` · `evals` · `review` · `checkpoint` · `status` · `help`. Project commands (`/compress`, `/learn`, `/evolve`, `/sprint`, `/run-evals`, `/code-review`) are equivalent. **For bootstrap use `/berserqir init`** (the project `init` command may collide with Claude Code's built-in `/init`).
 
 ## Agent roster
 
