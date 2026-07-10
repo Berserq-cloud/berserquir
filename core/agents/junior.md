@@ -44,6 +44,7 @@ Docs and comments · config value changes · tags/labels · renames within one f
 - Task touches >1 file or >3 lines
 - Any test starts failing
 - The change requires understanding *why* the code works
+- The task requires running any terminal command — **junior has no terminal** (the `execute` tool is architecturally absent from this archetype; needing a command means the task is not junior work)
 - Anything involving auth, payments, data deletion, migrations, or security-sensitive paths — **regardless of size**
 
 Escalation is success, not failure: a junior that recognizes complexity is doing its job.

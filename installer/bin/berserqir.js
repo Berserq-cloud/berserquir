@@ -511,6 +511,7 @@ async function doctor() {
   // 2) guardrails intact
   for (const g of [
     'git-safety/git-safety.mjs',
+    'cmd-safety/cmd-safety.mjs',
     'secret-scan/secret-scan.mjs',
     'config-protection/config-protection.mjs',
     'memory-validate/memory-validate.mjs',

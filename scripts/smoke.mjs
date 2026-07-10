@@ -91,6 +91,52 @@ check(
   'secret-scan allows clean text',
   hook('secret-scan/secret-scan.mjs', ['hello world']) === 0,
 )
+check(
+  'cmd-safety blocks rm -rf',
+  hook('cmd-safety/cmd-safety.mjs', ['rm -rf src']) === 2,
+)
+check(
+  'cmd-safety allows tmp-scoped rm',
+  hook('cmd-safety/cmd-safety.mjs', ['rm -rf /tmp/bq-scratch']) === 0,
+)
+check(
+  'cmd-safety blocks terraform destroy',
+  hook('cmd-safety/cmd-safety.mjs', ['terraform destroy -auto-approve']) === 2,
+)
+check(
+  'cmd-safety blocks npm publish',
+  hook('cmd-safety/cmd-safety.mjs', ['npm publish']) === 2,
+)
+check(
+  'cmd-safety override works',
+  hook('cmd-safety/cmd-safety.mjs', ['rm -rf src'], {
+    BERSERQIR_CMD_ALLOW: '1',
+  }) === 0,
+)
+// advisories: exit 0 ALWAYS — findings go to stderr, never block
+{
+  const slop = join(TMP, 'Hero.tsx')
+  writeFileSync(
+    slop,
+    '<h1 className="bg-clip-text">Streamline your world-class workflow</h1>',
+  )
+  const r = node([join(ROOT, 'core/hooks/front-quality/front-quality.mjs'), slop])
+  check(
+    'front-quality flags slop but exits 0 (advisory by design)',
+    r.status === 0 && r.stderr.includes('front-quality'),
+  )
+  const clean = join(TMP, 'Clean.tsx')
+  writeFileSync(clean, '<p>Send message</p>')
+  const rc = node([join(ROOT, 'core/hooks/front-quality/front-quality.mjs'), clean])
+  check('front-quality silent on clean file', rc.status === 0 && !rc.stderr)
+  const sd = node([join(ROOT, 'core/hooks/stray-doc/stray-doc.mjs'), 'NOTES.md'])
+  check(
+    'stray-doc warns on root NOTES.md but exits 0',
+    sd.status === 0 && sd.stderr.includes('stray-doc'),
+  )
+  const sdok = node([join(ROOT, 'core/hooks/stray-doc/stray-doc.mjs'), 'README.md'])
+  check('stray-doc silent on canonical README.md', sdok.status === 0 && !sdok.stderr)
+}
 
 // ---------- 3) memory-validate cases ----------
 console.log('\n[3/5] memory-validate')

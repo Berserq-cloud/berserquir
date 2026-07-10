@@ -61,6 +61,10 @@ Handle the area's hardest demands: critical features, cross-module changes, refa
 
 MAY dispatch independent simple subtasks to pleno/junior — wave cap **3**, **disjoint file scopes**, merge reports (`core/protocols/parallelism.md`). MUST NOT sub-delegate the critical path of its own task.
 
+## Terminal discipline (tiered)
+
+Full command surface — builds, debugging, profiling, complex pipelines — **except destructive/irreversible actions**: deleting files/branches/volumes, dropping schemas, `terraform destroy`, bulk prunes, publishing. Those require explicit human authorization FIRST, even at this tier. git-safety + cmd-safety enforce the floor; overrides (`BERSERQIR_CMD_ALLOW=1`, `BERSERQIR_GIT_ALLOW=1`) only relay a literal human OK — never self-granted.
+
 ## Context Budget (template — overlay refines)
 
 - **always:** memory-short, memory-long §area, codemap

@@ -3,8 +3,8 @@
 // payload, delegate to canonical zero-deps hooks). Vendored to .berserqir/hooks/.
 //
 // Wired via .cursor/hooks.json. Cursor hooks speak JSON over stdio:
-//   before-shell  beforeShellExecution → git-safety   → {"permission":"deny"|"allow"} (real block)
-//   after-edit    afterFileEdit        → config-protection + memory-validate + journal (observational — violations surface as agentMessage)
+//   before-shell  beforeShellExecution → git-safety + cmd-safety → {"permission":"deny"|"allow"} (real block)
+//   after-edit    afterFileEdit        → config-protection + memory-validate + journal + advisories (observational — violations surface as agentMessage)
 //   stop          stop                 → memory staleness warning (observational)
 //
 // Defensive: unknown payload shapes → allow silently (never break the harness).
@@ -36,16 +36,17 @@ const reply = (obj) => {
 if (mode === 'before-shell') {
   const command = evt.command ?? evt.tool_input?.command ?? ''
   if (!command) reply({ permission: 'allow' })
-  const r = run(process.execPath, [
-    join(HOOKS_DIR, 'git-safety/git-safety.mjs'),
-    command,
-  ])
-  if (r.status === 2)
-    reply({
-      permission: 'deny',
-      userMessage: 'Berserqir git-safety blocked this command.',
-      agentMessage: (r.stderr ?? '').trim(),
-    })
+  for (const guard of ['git-safety/git-safety.mjs', 'cmd-safety/cmd-safety.mjs']) {
+    const g = join(HOOKS_DIR, guard)
+    if (!existsSync(g)) continue
+    const r = run(process.execPath, [g, command])
+    if (r.status === 2)
+      reply({
+        permission: 'deny',
+        userMessage: 'Berserqir blocked this command (safety guardrail).',
+        agentMessage: (r.stderr ?? '').trim(),
+      })
+  }
   reply({ permission: 'allow' })
 }
 
@@ -72,6 +73,13 @@ if (mode === 'after-edit') {
       { BERSERQIR_MEMORY_DIR: MEMORY_DIR },
     )
     if (j.stderr) violation += j.stderr
+  }
+  // advisories (stray root docs, front slop/DESIGN drift) — surface, never block
+  for (const adv of ['stray-doc/stray-doc.mjs', 'front-quality/front-quality.mjs']) {
+    const a = join(HOOKS_DIR, adv)
+    if (!existsSync(a)) continue
+    const r = run(process.execPath, [a, p])
+    if (r.stderr) violation += r.stderr
   }
   // update nudge (best-effort, throttled to once/day inside the hook)
   const upd = join(HOOKS_DIR, 'update-check/update-check.mjs')

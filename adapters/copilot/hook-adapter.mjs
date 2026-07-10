@@ -54,6 +54,14 @@ for (const p of paths) {
   const journal = join(HOOKS_DIR, 'memory-journal/memory-journal.mjs')
   if (existsSync(journal))
     spawnSync(process.execPath, [journal, agent, tool, p], { encoding: 'utf8' })
+
+  // advisories (stray root docs, front slop/DESIGN drift) — surface, never block
+  for (const adv of ['stray-doc/stray-doc.mjs', 'front-quality/front-quality.mjs']) {
+    const a = join(HOOKS_DIR, adv)
+    if (!existsSync(a)) continue
+    const r = spawnSync(process.execPath, [a, p], { encoding: 'utf8' })
+    if (r.stderr) process.stderr.write(r.stderr)
+  }
 }
 
 // update nudge (best-effort, throttled to once/day inside the hook)

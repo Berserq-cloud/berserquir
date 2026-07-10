@@ -11,6 +11,7 @@ Mechanism-agnostic (CSS, WAAPI, or the project's animation library — see `memo
 
 - **`prefers-reduced-motion` is mandatory**: every animation has a reduced/disabled variant — not optional, not "later"
 - **Compositor-only properties**: animate transform/opacity; never layout properties (width/height/top/left trigger reflow)
+- **No bounce/elastic easing** — dated and tacky; real objects decelerate smoothly. Use exponential ease-out (quart/quint/expo)
 - Motion has a **job** (orient, connect, confirm, direct attention) — decorative motion without a job is noise; cut it
 
 ## Patterns

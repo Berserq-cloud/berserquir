@@ -3,8 +3,8 @@
 // payload, delegate to canonical zero-deps hooks). Vendored to .berserqir/hooks/.
 //
 // Wired via .claude/settings.json:
-//   pre-bash       PreToolUse (matcher Bash)          → git-safety            exit 2 = deny
-//   post-edit      PostToolUse (Edit|Write|...)       → config-protection + memory-validate + journal
+//   pre-bash       PreToolUse (matcher Bash)          → git-safety + cmd-safety  exit 2 = deny
+//   post-edit      PostToolUse (Edit|Write|...)       → config-protection + memory-validate + journal + advisories (stray-doc, front-quality)
 //   session-start  SessionStart                       → stdout injects §Focus + active instincts (≥0.7, cap 6)
 //   stop           Stop                               → memory untouched this session ⇒ exit 2 (once — respects stop_hook_active)
 //   pre-compact    PreCompact                         → archive memory-short verbatim (deterministic half of /compress step 1)
@@ -40,13 +40,14 @@ const run = (cmd, args, env) =>
 if (mode === 'pre-bash') {
   const command = evt.tool_input?.command ?? ''
   if (!command) process.exit(0)
-  const r = run(process.execPath, [
-    join(HOOKS_DIR, 'git-safety/git-safety.mjs'),
-    command,
-  ])
-  if (r.status === 2) {
-    process.stderr.write(r.stderr ?? '')
-    process.exit(2)
+  for (const guard of ['git-safety/git-safety.mjs', 'cmd-safety/cmd-safety.mjs']) {
+    const g = join(HOOKS_DIR, guard)
+    if (!existsSync(g)) continue
+    const r = run(process.execPath, [g, command])
+    if (r.status === 2) {
+      process.stderr.write(r.stderr ?? '')
+      process.exit(2)
+    }
   }
   process.exit(0)
 }
@@ -78,6 +79,13 @@ if (mode === 'post-edit') {
       { BERSERQIR_MEMORY_DIR: MEMORY_DIR },
     )
     if (j.stderr) process.stderr.write(j.stderr)
+  }
+  // advisories (stray root docs, front slop/DESIGN drift) — surface, never block
+  for (const adv of ['stray-doc/stray-doc.mjs', 'front-quality/front-quality.mjs']) {
+    const a = join(HOOKS_DIR, adv)
+    if (!existsSync(a)) continue
+    const r = run(process.execPath, [a, p])
+    if (r.stderr) process.stderr.write(r.stderr)
   }
   // update nudge (best-effort, throttled to once/day inside the hook)
   const upd = join(HOOKS_DIR, 'update-check/update-check.mjs')

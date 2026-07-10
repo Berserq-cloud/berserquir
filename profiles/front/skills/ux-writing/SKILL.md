@@ -23,5 +23,6 @@ The **discipline** of interface copy. The project's voice (tone, vocabulary, ban
 
 1. Every state a component can enter has copy designed for it (error/empty/loading/success are part of the component contract — see `component-patterns`).
 2. Copy is content, not decoration: review it like code. A vague error message is a bug.
-3. Generic marketing-speak is banned by default (the project's memory may extend the blacklist): "innovative", "seamless", "leverage", "unlock", "empower", "best-in-class", "next-gen".
+3. Generic marketing-speak is banned by default (the project's memory may extend the blacklist): "innovative", "seamless", "leverage", "unlock", "empower", "best-in-class", "next-gen", "streamline", "supercharge", "world-class", "enterprise-grade", "cutting-edge".
 4. If the project is bilingual, the primary language leads and the mirror follows the same patterns — never machine-translate microcopy without pattern review.
+5. **AI-cadence tells** (Impeccable-verified): more than two em-dashes in one passage · the aphoristic rebuttal cadence ("X. No Y." / "Not a feature. A platform.") repeated across sections · buzzword stacking. Once is voice; the pattern is the tell — rewrite with plain verbs and nouns.

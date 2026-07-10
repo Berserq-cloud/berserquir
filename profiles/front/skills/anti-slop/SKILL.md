@@ -18,6 +18,11 @@ description: Anti-generic-AI design discipline — bans, tells, and the slop tes
 - **Numbered section scaffolding (01/02/03) by reflex** — numbers only when the content IS a real sequence
 - **Purple-to-blue gradients + ✨ emoji + "Powered by AI" pills** — the 2024-25 tell trifecta
 - **Warm-neutral cream/sand/beige body bg as "warmth"** — carry warmth via accent, typography and imagery; body bg is a committed choice
+- **Nested cards** (cards inside cards) → flatten — spacing, typography and dividers, not containers in containers
+- **Icon tile stacked above every heading** (rounded-square icon container over each feature heading — the universal AI card template) → icon beside the heading, or in flow without its own container
+- **Italic serif display hero** (oversized Fraunces/Playfair/Recoleta italic headline) — the universal AI-startup hero; set roman or use a non-serif display face (editorial register may earn it — judge by context)
+- **Oversized full-sentence H1** — a punchy 1–2 word headline at display size is fine; a long sentence blown up dominates the viewport — set it smaller or tighten the copy
+- **Monotonous spacing** (the same gap everywhere) → tight within groups, generous between sections — rhythm is information
 
 ## Category-reflex check (two altitudes)
 

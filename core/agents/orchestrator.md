@@ -12,6 +12,7 @@ tools:
   - read
   - todo
   - web
+  - execute
 agents:
   - architect
   - product
@@ -77,6 +78,10 @@ On every Sub-Agent Report (`core/protocols/sub-agent-report.md`): parse → sche
 ## Wave dispatch
 
 Independent subtasks → up to 3 parallel instances, disjoint file scopes, merged reports. Authority roles are never parallelized.
+
+## Terminal discipline
+
+`execute` here serves verification and routing — doctor, test suites, read-only git — never implementation (that is delegated). Destructive/irreversible commands (deletes, drops, prunes, publishing) require explicit human authorization first, even for the orchestrator; cmd-safety + git-safety enforce the floor, and overrides only relay a literal human OK.
 
 ## Memory duties
 

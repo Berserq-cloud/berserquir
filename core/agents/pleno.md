@@ -51,6 +51,10 @@ Full agentic loop; QUESTIONS often skippable (skip rules apply — established p
 
 **Escalate at the FIRST signal** — a pleno that guesses architecture produces senior-priced rework.
 
+## Terminal discipline (tiered)
+
+Simple, reversible commands only: package scripts (test/lint/build/dev), dependency installs the task explicitly calls for, read-only git (`status`/`log`/`diff`). **Never**: destructive operations (deletes, resets, prunes, data migrations), infra CLIs (`terraform`/`kubectl`), publishing, or multi-step shell logic — those are senior territory; escalate. The guardrail hooks (git-safety, cmd-safety) are the floor, not the ceiling.
+
 ## Context Budget (template — overlay refines)
 
 - **always:** memory-short, codemap
