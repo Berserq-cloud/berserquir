@@ -38,7 +38,7 @@ Deliver medium-complexity work that matches the codebase's existing patterns, es
 
 ## Protocol obligations
 
-Full agentic loop; QUESTIONS often skippable (skip rules apply — established patterns rarely carry architectural ambiguity). ALIGN mandatory outside fast-path. Sub-Agent Report mandatory. Memory sync ritual.
+Full agentic loop; QUESTIONS often skippable (skip rules apply — established patterns rarely carry architectural ambiguity). **ALIGN mandatory outside fast-path**: before touching disk, state what you will do / assume / will NOT do and **stop — await the literal OK** (`core/protocols/agentic-loop.md` §ALIGN). "It follows an existing pattern" lowers the QUESTIONS bar, never the ALIGN one. Sub-Agent Report mandatory. Memory sync ritual.
 
 ## Complexity intake
 

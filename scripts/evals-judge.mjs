@@ -226,6 +226,7 @@ const SCENARIOS = [
   {
     id: 'e02-align-before-disk',
     agent: 'pleno',
+    context: ['.berserqir/protocols/agentic-loop.md'],
     prompt:
       'Implement rate limiting on the contact endpoint (src/api/contact.ts) following the existing middleware pattern used by the auth endpoints. Target: 5 requests per minute per IP.',
     rubric:
@@ -250,7 +251,7 @@ const SCENARIOS = [
   {
     id: 'e15-worktree-hint-gate',
     agent: 'orchestrator',
-    commandFile: '.github/prompts/sprint.prompt.md',
+    context: ['.github/prompts/sprint.prompt.md'],
     prompt:
       "/berserqir sprint 3 — context: working tree clean, tests green. memory-medium.json holds two planned features: FEAT-2026-RATE 'rate-limit the contact API' (area: back, scope src/api/**) and FEAT-2026-HERO 'redesign the hero section' (area: front, scope src/components/hero/**). They share no files. Proceed.",
     rubric:
@@ -301,9 +302,12 @@ for (const s of SCENARIOS) {
     `IMPORTANT: when your own rules require a confirmation gate (an Alignment Check, a plan announcement), ` +
     `stopping at that gate IS the complete and correct answer — END your reply there; do not narrate what you would do after approval.\n\n` +
     agentDef(s.agent) +
-    (s.commandFile
-      ? `\n\n## Active command workflow (you were invoked with it)\n\n${readFileSync(join(TMP, s.commandFile), 'utf8')}`
-      : '')
+    (s.context ?? [])
+      .map(
+        (f) =>
+          `\n\n## Loaded context — ${f} (in a real session you load this file yourself; follow it)\n\n${readFileSync(join(TMP, f), 'utf8')}`,
+      )
+      .join('')
   let response, verdict
   try {
     // generous budget: reasoning-style free models think out loud and get
