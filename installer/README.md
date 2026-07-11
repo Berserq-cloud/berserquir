@@ -34,7 +34,8 @@ Canonical sources (`core/` protocols + `profiles/` per area) are **compiled** in
 | `install` | Compiles + installs. Detects your **IDE terminal + repo signals** for the harness and your **stack** for the areas, proposes, asks before writing |
 | `update` | Recompiles with the new version. Remembers harness & areas from the manifest; **never silently overwrites files you edited**; prunes orphans from old versions |
 | `uninstall` | Removes managed, untouched files after confirmation. **Your memory and PRD/SPECS/TESTS always survive** |
-| `doctor` | Deterministic health score — wiring, guardrails, memory budgets, graph integrity, update check. Exit 1 on critical failure (CI-safe) |
+| `doctor` | Deterministic health score — wiring, guardrails, memory budgets, graph integrity, update check. Exit 1 on critical failure (CI-safe). **`--fix`** applies the mechanical repairs (exec bits, reseed skeletons, re-vendor broken managed files) and re-checks — semantic fixes stay with `/init` and `/compress` |
+| `hook-install` / `hook-uninstall` | Wire commit-quality as **native git hooks** (pre-commit: secrets · size · debug leftovers; commit-msg: conventional format) — works on any OS and any harness, never overwrites a foreign hook without `--force`, reverts cleanly |
 | `version` · `help` | What you'd expect |
 
 | Flag | Meaning |
@@ -56,17 +57,31 @@ npx berserqir install --harness claude-code --profiles back,infra --yes
 
 | Command | What it does |
 |---|---|
-| `/berserqir init` | Bootstrap — greenfield interview or brownfield scan with block-by-block confirmation |
+| `/berserqir init` | Bootstrap — greenfield interview or brownfield scan with block-by-block confirmation. `init refresh` re-scans **structure only** (codemap + graph, presented as a diff) when the map drifts — never touches your decisions |
 | `/berserqir compress` | Archive-first memory compression at logical breakpoints |
 | `/berserqir learn` | Extract instincts (confidence-scored project patterns) from the session journal |
 | `/berserqir evolve` | Cluster mature instincts into a generated skill — eval-gated, needs your OK |
-| `/berserqir sprint [n]` | **Bounded-autonomy engineering loop**: picks the next features from your sprint tracker, runs the full cycle per feature (implement → QA gate → anchored local commit), and **queues architectural decisions for you** instead of making them. Hard stops: iteration cap (default 3, max 10), any guardrail firing, two consecutive blocked features. Never pushes |
+| `/berserqir sprint [n] [scope]` | **Bounded-autonomy engineering loop**: picks the next features from your sprint tracker, runs the full cycle per feature (implement → QA gate → anchored local commit), and **queues architectural decisions for you** instead of making them. Hard stops: iteration cap (default 3, max 10), any guardrail firing, two consecutive blocked features. Never pushes. The optional scope (`sprint 3 FEAT-x` · `sprint 3 front`) pins the loop to a slice — and when the backlog holds independent slices, the orchestrator **offers a parallel worktree split**: you approve, it prepares worktrees + branches, you open each as its own session (a terminal tab per worktree on CLI harnesses) |
 | `/berserqir evals [id]` | Run the behavioral suite (pass@3, anti-checks included) |
 | `/berserqir review` | Read-only code review by the QA gate — reports, never fixes |
 | `/berserqir checkpoint` | Manual memory-sync + suggested conventional commit (nothing pushed) |
 | `/berserqir status` | Harness state report + one recommended next action |
 
 Updates are hash-aware: files you modified are kept unless you `--force`. Your model roster (set during `/init`) survives updates and drives recompilation.
+
+### The power workflow (how it's meant to be driven)
+
+```bash
+npx berserqir install --yes     # 1. detect harness + stack, install the squad
+npx berserqir hook-install      # 2. commit-quality as native git hooks
+#    in your harness chat:
+#    /berserqir init            # 3. interview/scan → SDD + memory + graph (once)
+#    /berserqir sprint 3        # 4. the loop works the backlog; you review the queue
+#    /berserqir review          # 5. read-only QA pass whenever you want a second pair of eyes
+npx berserqir doctor --fix      # 6. periodic hygiene: score + mechanical repairs
+```
+
+When the sprint offers the **parallel split**: approve it, then one terminal tab per worktree (`cd ../repo-slug && claude`) on CLI harnesses — or one IDE window each for chat harnesses — and run the `/berserqir sprint <n> <scope>` command it hands you. Compression (`/compress`), instinct extraction (`/learn`) and update checks nudge themselves when due — the system tells you when it needs attention.
 
 ## Context is a knowledge graph (KAG, the lite way)
 
@@ -187,4 +202,4 @@ Everything is **vendored** — npm exists only at install/update time; the harne
 
 ## Status
 
-`0.3.x` — all three MVP targets complete: **GitHub Copilot**, **Claude Code** (`--harness claude-code` — native session hooks: automatic memory injection, instinct loading, archive-before-compaction, git-safety as PreToolUse) and **Cursor** (`--harness cursor` — glob-scoped area rules, `bq-*` agents, git-safety denies via the hooks permission protocol). MIT.
+`0.6.x` — all three MVP targets complete and hardened: **GitHub Copilot**, **Claude Code** (`--harness claude-code` — native session hooks: automatic memory injection, instinct loading, archive-before-compaction, git-safety as PreToolUse) and **Cursor** (`--harness cursor` — glob-scoped area rules, `bq-*` agents, git-safety denies via the hooks permission protocol). Cross-platform (Node is the only dependency; Windows/macOS/Linux CI on every push), self-verifying (a 52-check deterministic smoke plus an **LLM-judge** that replays behavioral scenarios against the compiled agents — it has already caught and closed a real guardrail loophole in the wild), self-healing memory. MIT.
