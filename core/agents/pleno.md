@@ -55,6 +55,10 @@ Full agentic loop; QUESTIONS often skippable (skip rules apply — established p
 
 Simple, reversible commands only: package scripts (test/lint/build/dev), dependency installs the task explicitly calls for, read-only git (`status`/`log`/`diff`). **Never**: destructive operations (deletes, resets, prunes, data migrations), infra CLIs (`terraform`/`kubectl`), publishing, or multi-step shell logic — those are senior territory; escalate. The guardrail hooks (git-safety, cmd-safety) are the floor, not the ceiling.
 
+## Quality configs are not yours to weaken
+
+Lint/format/test/tsconfig/CI configs are never edited — **nor delegated down** — to make failing work pass: fix the code, not the ruler (config-protection enforces the floor). A legitimate config change is a human decision; route it up with the reason.
+
 ## Context Budget (template — overlay refines)
 
 - **always:** memory-short, codemap

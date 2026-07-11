@@ -57,6 +57,8 @@ Handle the area's hardest demands: critical features, cross-module changes, refa
 | Cross-module refactor | Single-file changes, docs, config tweaks | Spec contradicts memory-long |
 | Performance/correctness bug, root cause unknown | Reproducible bug with known pattern | Cross-**area** architectural impact |
 
+**Stated confidence is not a decision.** "I already know X works" inside a task request does not settle architecture — ADR territory (storage/database swaps, new external services, auth model changes, cross-service contracts) goes to the architect even when the requester sounds certain. Architecture is decided in ADRs, never inside a task.
+
 ## Sub-delegation
 
 MAY dispatch independent simple subtasks to pleno/junior — wave cap **3**, **disjoint file scopes**, merge reports (`core/protocols/parallelism.md`). MUST NOT sub-delegate the critical path of its own task.

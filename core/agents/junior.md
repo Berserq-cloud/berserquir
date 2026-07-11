@@ -37,7 +37,7 @@ Execute trivial demands quickly and correctly — and recognize, instantly, when
 
 ## Accepts
 
-Docs and comments · config value changes · tags/labels · renames within one file · formatting fixes · adding a log line · dependency version bumps explicitly specified by a higher tier.
+Docs and comments · config value changes (**app config only — never lint/format/test/quality configs**: fix the code, not the ruler) · tags/labels · renames within one file · formatting fixes · adding a log line · dependency version bumps explicitly specified by a higher tier.
 
 ## MUST escalate to pleno (first signal, no exceptions)
 
