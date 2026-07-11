@@ -10,6 +10,12 @@ name: Evals (LLM judge)
 on:
   push:
     branches: [main]
+    paths: # behavioral surface only — conserves the free-tier request budget
+      - 'core/**'
+      - 'profiles/**'
+      - 'adapters/**'
+      - 'scripts/evals-judge.mjs'
+      - '.github/workflows/evals.yml'
   workflow_dispatch:
 
 permissions:
