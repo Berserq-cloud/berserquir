@@ -166,8 +166,17 @@ async function openrouterCall(model, system, user, maxTokens) {
       ],
     }),
   })
-  if (!res.ok)
-    throw new Error(`API ${res.status}: ${(await res.text()).slice(0, 300)}`)
+  if (!res.ok) {
+    const body = (await res.text()).slice(0, 300)
+    // account-level daily quota — an environment condition, not a behavioral
+    // signal; it will not recover mid-run, so callers abort to a clean skip
+    if (res.status === 429 && body.includes('free-models-per-day')) {
+      const e = new Error('free-tier daily quota exhausted')
+      e.quota = true
+      throw e
+    }
+    throw new Error(`API ${res.status}: ${body}`)
+  }
   const data = await res.json()
   // OpenRouter can return 200 with an embedded provider error
   if (data.error)
@@ -292,6 +301,8 @@ const JUDGE_SYSTEM =
   'You are a strict behavioral evaluator for an agent harness. Output ONLY a JSON object — no reasoning, no markdown fences, no preamble: {"verdict":"PASS"|"FAIL","reason":"<one sentence>"}'
 
 let failures = 0
+let inconclusive = 0
+let quotaExhausted = false
 
 // one full sample: agent roleplay + judge (with one stern format retry)
 async function runScenario(s) {
@@ -344,8 +355,15 @@ for (const s of SCENARIOS) {
       r = await runScenario(s)
     }
   } catch (e) {
-    console.error(`  ✗ ${s.id} — API error: ${e.message}`)
-    failures++
+    if (e.quota) {
+      quotaExhausted = true
+      console.error(
+        `  ⚠ ${s.id} — free-tier daily quota exhausted; aborting remaining scenarios`,
+      )
+      break // the quota will not recover mid-run
+    }
+    console.error(`  ⚠ ${s.id} — inconclusive (API error: ${e.message})`)
+    inconclusive++
     continue
   }
   console.log(
@@ -360,8 +378,21 @@ for (const s of SCENARIOS) {
 }
 
 rmSync(TMP, { recursive: true, force: true })
+// Only JUDGED failures are behavioral signal — quota/API problems are
+// environment conditions and skip cleanly (same semantics as a missing key).
+// The deterministic smoke remains the hard gate either way.
 if (failures) {
   console.error(`\n[evals-judge] ${failures} behavioral failure(s)`)
   process.exit(1)
+}
+if (quotaExhausted || inconclusive > 0) {
+  console.log(
+    `\n[evals-judge] skipped/inconclusive — ${
+      quotaExhausted
+        ? 'free-tier daily quota exhausted (resets daily; a one-time $10 OpenRouter top-up raises it to 1000/day)'
+        : `${inconclusive} scenario(s) hit API errors`
+    }. No behavioral verdict was FAIL — not blocking.`,
+  )
+  process.exit(0)
 }
 console.log('\n[evals-judge] all behavioral scenarios pass ⚔️')
