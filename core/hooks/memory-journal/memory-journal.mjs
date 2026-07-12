@@ -3,8 +3,10 @@
 // PostToolUse hook: appends a journal line to memory-short.md §Journal.
 // Zero dependencies. Silently no-ops if memory is not installed.
 //
-// Input (stdin JSON, harness adapters normalize): { "agent": "...", "tool": "...", "target": "..." }
-//   or args: memory-journal.mjs <agent> <tool> <target>
+// Input (stdin JSON, harness adapters normalize): { "agent": "...", "tool": "...", "target": "...", "outcome"?: "deny:git-safety" }
+//   or args: memory-journal.mjs <agent> <tool> <target> [outcome]
+// The optional 5th field is a guard verdict (deny:* · block:* · warn:* · fail:*)
+// — a friction trace. Repetition there is the strongest signal /learn mines.
 // Env: BERSERQIR_MEMORY_DIR (default: .berserqir/memory)
 
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs'
@@ -20,6 +22,7 @@ if (process.argv[2]) {
     agent: process.argv[2],
     tool: process.argv[3] ?? '?',
     target: process.argv[4] ?? '',
+    outcome: process.argv[5],
   }
 } else {
   try {
@@ -30,8 +33,9 @@ if (process.argv[2]) {
 }
 
 const ts = new Date().toISOString().replace(/\.\d{3}Z$/, 'Z')
-const line =
-  `- ${ts} · ${evt.agent ?? '?'} · ${evt.tool ?? '?'} · ${evt.target ?? ''}`.trimEnd()
+const line = `- ${ts} · ${evt.agent ?? '?'} · ${evt.tool ?? '?'} · ${
+  evt.target ?? ''
+}${evt.outcome ? ` · ${evt.outcome}` : ''}`.trimEnd()
 
 const raw = readFileSync(FILE, 'utf8')
 const marker = '## Journal'
@@ -106,7 +110,7 @@ if (journalLines > 0 && journalLines % 40 === 0)
   const targets = [
     ...readFileSync(FILE, 'utf8')
       .slice(idx)
-      .matchAll(/^- .+? · .+? · .+? · (.+)$/gm),
+      .matchAll(/^- .+? · .+? · .+? · (.+?)(?: · (?:ok|deny|block|warn|fail)\S*)?$/gm),
   ].map((m) => m[1].trim())
   // tool loop: the newest N entries (top of §Journal) all hit the same file
   const LOOP = 6

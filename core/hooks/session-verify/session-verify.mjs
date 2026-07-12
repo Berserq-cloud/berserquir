@@ -27,13 +27,15 @@ const MEMORY_DIR = process.env.BERSERQIR_MEMORY_DIR || '.berserqir/memory'
 const shortPath = join(MEMORY_DIR, 'memory-short.md')
 if (!existsSync(shortPath)) process.exit(0)
 
-// ---- did this session touch JS/TS? (journal lines: `- ts · agent · tool · target`)
+// ---- did this session touch JS/TS? (journal lines: `- ts · agent · tool · target[ · outcome]`)
 const raw = readFileSync(shortPath, 'utf8')
 const jIdx = raw.indexOf('## Journal')
 if (jIdx === -1) process.exit(0)
 const journal = raw.slice(jIdx, raw.indexOf('\n## ', jIdx + 1))
 const touched = new Set()
-for (const m of journal.matchAll(/^- .+? · .+? · .+? · (.+)$/gm)) {
+for (const m of journal.matchAll(
+  /^- .+? · .+? · .+? · (.+?)(?: · (?:ok|deny|block|warn|fail)\S*)?$/gm,
+)) {
   const t = m[1].trim()
   if (/\.(ts|tsx|mts|cts|js|jsx|mjs|cjs)$/.test(t) && existsSync(t))
     touched.add(t)

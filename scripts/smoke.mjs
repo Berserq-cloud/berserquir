@@ -301,6 +301,41 @@ check(
     lr.status === 0 && lr.stderr.includes('possible loop'),
   )
 }
+// friction traces: journal accepts an optional guard-verdict 5th field, and
+// the parsers (loop detection) strip it when extracting targets
+{
+  const memDir = join(TMP, 'mem-friction')
+  mkdirSync(memDir, { recursive: true })
+  const denied = Array.from(
+    { length: 5 },
+    () =>
+      '- 2026-07-10T00:00:00Z · agent · edit · .eslintrc.json · block:config-protection',
+  ).join('\n')
+  writeFileSync(
+    join(memDir, 'memory-short.md'),
+    `# m\n\n## Focus\n\nx\n\n## Journal\n\n${denied}\n\n## Errors & learnings\n\n-\n\n## Open threads\n\n-\n`,
+  )
+  const fr = node(
+    [
+      join(ROOT, 'core/hooks/memory-journal/memory-journal.mjs'),
+      'agent',
+      'edit',
+      '.eslintrc.json',
+      'block:config-protection',
+    ],
+    { env: { ...process.env, BERSERQIR_MEMORY_DIR: memDir } },
+  )
+  const written = readFileSync(join(memDir, 'memory-short.md'), 'utf8')
+  check(
+    'journal records a guard-verdict friction trace',
+    fr.status === 0 &&
+      /· \.eslintrc\.json · block:config-protection$/m.test(written),
+  )
+  check(
+    'loop detection sees through the verdict field (6× same target)',
+    fr.stderr.includes('possible loop'),
+  )
+}
 // session-verify: project's own failing typecheck blocks the Stop
 {
   const proj = join(TMP, 'verify-proj')
@@ -310,7 +345,7 @@ check(
   writeFileSync(join(proj, 'src', 'x.ts'), 'export const a = 1\n')
   writeFileSync(
     join(projMem, 'memory-short.md'),
-    '# m\n\n## Focus\n\nx\n\n## Journal\n\n- 2026-07-10T00:00:00Z · agent · edit · src/x.ts\n\n## Errors & learnings\n\n-\n\n## Open threads\n\n-\n',
+    '# m\n\n## Focus\n\nx\n\n## Journal\n\n- 2026-07-10T00:00:00Z · agent · edit · src/x.ts · fail:session-verify\n\n## Errors & learnings\n\n-\n\n## Open threads\n\n-\n',
   )
   writeFileSync(
     join(proj, 'package.json'),

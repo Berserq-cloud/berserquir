@@ -6,6 +6,8 @@ An **instinct** is a one-line, project-specific behavioral pattern learned from 
 
 journal entries (raw, hook-written) → **candidate** (extracted by `/learn` or during `/compress`) → **active** (confidence ≥ 0.7 — injectable) → **promoted** (clustered into a generated skill via `/evolve`) or **expired** (unreinforced/contradicted).
 
+Journal lines may carry a fifth field — a **guard verdict** (`· deny:git-safety`, `· block:config-protection`, …) written by the hook adapters when a guardrail fires. These friction traces are `/learn`'s highest-signal input: repetition there means the squad keeps hitting the same wall, and the wall has a shape worth learning.
+
 Store: `.berserqir/memory/instincts.json` (schema: `core/memory/schemas/instincts.schema.json`). TTL mapping: short = observation · medium = instinct · long = skill / ICL demo.
 
 ## Confidence mechanics (deterministic — no judgment calls)

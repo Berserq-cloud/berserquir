@@ -37,6 +37,16 @@ try {
 const run = (cmd, args, env) =>
   spawnSync(cmd, args, { encoding: 'utf8', env: { ...process.env, ...env } })
 
+// friction trace: guard verdicts are journaled (best-effort, never block) —
+// repeated denies/blocks are exactly the material /learn mines into instincts
+const trace = (tool, target, outcome) => {
+  const journal = join(HOOKS_DIR, 'memory-journal/memory-journal.mjs')
+  if (!existsSync(journal)) return
+  run(process.execPath, [journal, evt.agent ?? 'claude', tool, target, outcome], {
+    BERSERQIR_MEMORY_DIR: MEMORY_DIR,
+  })
+}
+
 if (mode === 'pre-bash') {
   const command = evt.tool_input?.command ?? ''
   if (!command) process.exit(0)
@@ -48,6 +58,7 @@ if (mode === 'pre-bash') {
     if (!existsSync(g)) continue
     const r = run(process.execPath, [g, command])
     if (r.status === 2) {
+      trace('bash', command.split(/\s+/).slice(0, 4).join(' ').slice(0, 80), `deny:${guard.split('/')[0]}`)
       process.stderr.write(r.stderr ?? '')
       process.exit(2)
     }
@@ -79,12 +90,18 @@ if (mode === 'post-edit') {
     join(HOOKS_DIR, 'config-protection/config-protection.mjs'),
     p,
   ])
-  if (cp.status === 2) blocked = cp.stderr
+  if (cp.status === 2) {
+    blocked = cp.stderr
+    trace(evt.tool_name ?? 'Edit', p, 'block:config-protection')
+  }
   const mv = run(process.execPath, [
     join(HOOKS_DIR, 'memory-validate/memory-validate.mjs'),
     p,
   ])
-  if (mv.status === 2) blocked = (blocked ?? '') + mv.stderr
+  if (mv.status === 2) {
+    blocked = (blocked ?? '') + mv.stderr
+    trace(evt.tool_name ?? 'Edit', p, 'block:memory-validate')
+  }
   // advisories (stray root docs, front slop/DESIGN drift) — surface, never block
   for (const adv of [
     'stray-doc/stray-doc.mjs',

@@ -68,6 +68,25 @@ for (const p of paths) {
   )
   if (mv.status === 2) blocked = (blocked ?? '') + mv.stderr
 
+  // friction trace: guard verdicts are journaled (best-effort) — repeated
+  // blocks are exactly the material /learn mines into instincts. Copilot has
+  // no preToolUse shell gate, so only edit-guard verdicts exist here;
+  // git-safety friction on this harness is carried by the native git hooks.
+  if (existsSync(journal)) {
+    if (cp.status === 2)
+      spawnSync(
+        process.execPath,
+        [journal, agent, tool, p, 'block:config-protection'],
+        { encoding: 'utf8' },
+      )
+    if (mv.status === 2)
+      spawnSync(
+        process.execPath,
+        [journal, agent, tool, p, 'block:memory-validate'],
+        { encoding: 'utf8' },
+      )
+  }
+
   // advisories (stray root docs, front slop/DESIGN drift) — surface, never block
   for (const adv of [
     'stray-doc/stray-doc.mjs',

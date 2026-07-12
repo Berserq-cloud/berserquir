@@ -33,6 +33,16 @@ const reply = (obj) => {
   process.exit(0)
 }
 
+// friction trace: guard verdicts are journaled (best-effort, never block) —
+// repeated denies/blocks are exactly the material /learn mines into instincts
+const trace = (tool, target, outcome) => {
+  const journal = join(HOOKS_DIR, 'memory-journal/memory-journal.mjs')
+  if (!existsSync(journal)) return
+  run(process.execPath, [journal, evt.agent ?? 'cursor', tool, target, outcome], {
+    BERSERQIR_MEMORY_DIR: MEMORY_DIR,
+  })
+}
+
 if (mode === 'before-shell') {
   const command = evt.command ?? evt.tool_input?.command ?? ''
   if (!command) reply({ permission: 'allow' })
@@ -43,12 +53,14 @@ if (mode === 'before-shell') {
     const g = join(HOOKS_DIR, guard)
     if (!existsSync(g)) continue
     const r = run(process.execPath, [g, command])
-    if (r.status === 2)
+    if (r.status === 2) {
+      trace('shell', command.split(/\s+/).slice(0, 4).join(' ').slice(0, 80), `deny:${guard.split('/')[0]}`)
       reply({
         permission: 'deny',
         userMessage: 'Berserqir blocked this command (safety guardrail).',
         agentMessage: (r.stderr ?? '').trim(),
       })
+    }
   }
   reply({ permission: 'allow' })
 }
@@ -72,12 +84,18 @@ if (mode === 'after-edit') {
     join(HOOKS_DIR, 'config-protection/config-protection.mjs'),
     p,
   ])
-  if (cp.status === 2) violation += cp.stderr ?? ''
+  if (cp.status === 2) {
+    violation += cp.stderr ?? ''
+    trace('edit', p, 'block:config-protection')
+  }
   const mv = run(process.execPath, [
     join(HOOKS_DIR, 'memory-validate/memory-validate.mjs'),
     p,
   ])
-  if (mv.status === 2) violation += mv.stderr ?? ''
+  if (mv.status === 2) {
+    violation += mv.stderr ?? ''
+    trace('edit', p, 'block:memory-validate')
+  }
   // advisories (stray root docs, front slop/DESIGN drift) — surface, never block
   for (const adv of [
     'stray-doc/stray-doc.mjs',
