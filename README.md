@@ -133,6 +133,7 @@ flowchart TB
     MED["memory-medium.json — sprint"]
     SHORT["memory-short.md — session journal"]
     INST["instincts.json — confidence 0–1"]
+    PROF["human-profile.md — proficiency map"]
   end
 
   subgraph RUN["Session runtime — any harness"]
@@ -150,13 +151,14 @@ flowchart TB
 
   SHORT -->|"§Focus"| START
   INST -->|"active ≥0.7, cap 6"| START
+  PROF -->|"profile card — areas + last override"| START
   START -->|"inject"| AGENT
   MAP -->|"read first"| AGENT
   GRAPH -->|"grep anchor = O(1) jump"| AGENT
   LONG -->|"constraints"| AGENT
   MED -->|"sprint state"| AGENT
   AGENT <-->|"allow / block (exit 2)"| HOOKS
-  HOOKS -->|"journal every edit"| SHORT
+  HOOKS -->|"journal every edit + guard verdicts (friction traces)"| SHORT
   AGENT -->|"architectural ambiguity → ALIGN"| HUMAN
   HUMAN -->|"decision = ADR"| SPECS
   SPECS -->|"anchors: ADR-NNN · FEAT-*"| GRAPH
@@ -164,6 +166,7 @@ flowchart TB
   SHORT -->|"budget blow · every 40 entries"| COMPRESS
   COMPRESS --> LEARNC
   LEARNC -->|"+0.2 reinforce · −0.3 contradict · 30d expiry"| INST
+  LEARNC -.->|"override mining — proposals, human OK"| PROF
   INST -->|"cluster ≥3 active ≥0.7"| EVOLVE
   HUMAN -->|"eval gate + explicit OK"| EVOLVE
   EVOLVE --> SKILL
@@ -171,6 +174,12 @@ flowchart TB
 ```
 
 Every arrow is either a deterministic hook (zero-LLM) or a gated prompt workflow — nothing in the loop relies on the model "remembering to do it".
+
+### The harness learns you, too
+
+Two learning loops run on the same journal. The **project loop** above turns repetition into instincts and instincts into skills. The **human loop** models the operator: `/init` asks your proficiency per area (asked, never inferred — the repo reflects its past authors, not you); sessions journal your overrides and the guardrail friction; `/learn` mines those patterns and **proposes** profile updates — it never writes without your OK. At the next session start a **profile card** (~50 tokens: filled areas + last override) is loaded — hook-injected on Claude Code, ritual-carried on Copilot and Cursor — and mentorship calibrates against it: `learn` teaches before doing, `react` accelerates the known and explains only the new, `productivity` skips the pedagogy entirely. Guardrails are identical in every mode.
+
+The card is a **derived view, not a second file**: computed from `human-profile.md` at injection time, so it can never go stale and nothing needs a background process to keep it fresh. If you know Honcho-style user modeling from agent runtimes — this is that pattern minus the server: the profile is the representation, gated mining is the write path, the card is the read view.
 
 ### Why core ⊕ profiles ⊕ adapters (one source, many targets)
 
