@@ -42,9 +42,13 @@ const run = (cmd, args, env) =>
 const trace = (tool, target, outcome) => {
   const journal = join(HOOKS_DIR, 'memory-journal/memory-journal.mjs')
   if (!existsSync(journal)) return
-  run(process.execPath, [journal, evt.agent ?? 'claude', tool, target, outcome], {
-    BERSERQIR_MEMORY_DIR: MEMORY_DIR,
-  })
+  run(
+    process.execPath,
+    [journal, evt.agent ?? 'claude', tool, target, outcome],
+    {
+      BERSERQIR_MEMORY_DIR: MEMORY_DIR,
+    },
+  )
 }
 
 if (mode === 'pre-bash') {
@@ -58,7 +62,11 @@ if (mode === 'pre-bash') {
     if (!existsSync(g)) continue
     const r = run(process.execPath, [g, command])
     if (r.status === 2) {
-      trace('bash', command.split(/\s+/).slice(0, 4).join(' ').slice(0, 80), `deny:${guard.split('/')[0]}`)
+      trace(
+        'bash',
+        command.split(/\s+/).slice(0, 4).join(' ').slice(0, 80),
+        `deny:${guard.split('/')[0]}`,
+      )
       process.stderr.write(r.stderr ?? '')
       process.exit(2)
     }

@@ -38,9 +38,13 @@ const reply = (obj) => {
 const trace = (tool, target, outcome) => {
   const journal = join(HOOKS_DIR, 'memory-journal/memory-journal.mjs')
   if (!existsSync(journal)) return
-  run(process.execPath, [journal, evt.agent ?? 'cursor', tool, target, outcome], {
-    BERSERQIR_MEMORY_DIR: MEMORY_DIR,
-  })
+  run(
+    process.execPath,
+    [journal, evt.agent ?? 'cursor', tool, target, outcome],
+    {
+      BERSERQIR_MEMORY_DIR: MEMORY_DIR,
+    },
+  )
 }
 
 if (mode === 'before-shell') {
@@ -54,7 +58,11 @@ if (mode === 'before-shell') {
     if (!existsSync(g)) continue
     const r = run(process.execPath, [g, command])
     if (r.status === 2) {
-      trace('shell', command.split(/\s+/).slice(0, 4).join(' ').slice(0, 80), `deny:${guard.split('/')[0]}`)
+      trace(
+        'shell',
+        command.split(/\s+/).slice(0, 4).join(' ').slice(0, 80),
+        `deny:${guard.split('/')[0]}`,
+      )
       reply({
         permission: 'deny',
         userMessage: 'Berserqir blocked this command (safety guardrail).',

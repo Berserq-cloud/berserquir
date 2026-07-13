@@ -110,7 +110,9 @@ if (journalLines > 0 && journalLines % 40 === 0)
   const targets = [
     ...readFileSync(FILE, 'utf8')
       .slice(idx)
-      .matchAll(/^- .+? · .+? · .+? · (.+?)(?: · (?:ok|deny|block|warn|fail)\S*)?$/gm),
+      .matchAll(
+        /^- .+? · .+? · .+? · (.+?)(?: · (?:ok|deny|block|warn|fail)\S*)?$/gm,
+      ),
   ].map((m) => m[1].trim())
   // tool loop: the newest N entries (top of §Journal) all hit the same file
   const LOOP = 6
