@@ -1,6 +1,6 @@
 ---
 name: compress
-description: Compress memory-short when it exceeds its size budget — archive full journal, carry forward what matters.
+description: Compress memory when it exceeds its size budget — archive first, carry forward what matters. Handles memory-short and human-profile.
 ---
 
 # /compress — Memory Compression
@@ -23,3 +23,13 @@ Trigger: memory-validate blocks on size budget, dumb-zone signals fire (≥2 of:
 Open threads · unresolved errors · candidate instincts · the last 3 journal entries (recency context). When in doubt whether something matters: it goes to the archive either way — archives are grep-able (anchors survive).
 
 Good compression points: after research before implementation · after a milestone · after a failed approach, before the next one. **Never mid-implementation** (loses variable names, file paths, partial state).
+
+## human-profile over budget (1500 tokens)
+
+The profile grows through §Override log and §Growth notes — dated one-liners accumulate for months. When memory-validate blocks it:
+
+1. **Archive first** — verbatim copy to `compressions/<ISO-timestamp>-profile.md`, same rule as above.
+2. **Distill §Override log** — keep the last 5 entries; collapse chronic repetition into one line ("overrides styling advice consistently since 2026-05") — and if a pattern is chronic, the honest move is proposing the mode change it implies, not hoarding its evidence.
+3. **Distill §Growth notes** — concepts confirmed mastered graduate into §Areas evidence (one line) or a mode-upgrade proposal; teaching history that led nowhere goes to the archive.
+4. **Never** change a Mode or Pinned value in §Areas during compression — mode changes are the human's call (`core/protocols/mentorship.md`), propose and wait.
+5. **Verify** — memory-validate must pass headings + budget.

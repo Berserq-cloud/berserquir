@@ -1,6 +1,7 @@
 ---
 ttl: slow (person-scoped, evolves with evidence)
 role: human proficiency profile
+sizeBudget: 1500 tokens — exceeding triggers /compress (§human-profile over budget)
 ---
 
 # human-profile — Proficiency Map
