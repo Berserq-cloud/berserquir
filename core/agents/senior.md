@@ -26,7 +26,7 @@ handoffs:
     send: true
   - label: Delegate trivial change
     agent: junior
-    prompt: Apply the trivial change described above via fast-path.
+    prompt: Apply the trivial change described above via fast-path. Re-check intake first — 2+ files or a security-sensitive path exceeds junior scope, escalate instead of stretching the lane.
     send: true
   - label: Test this work
     agent: qa

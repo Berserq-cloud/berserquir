@@ -61,6 +61,13 @@ for (const p of paths) {
   )
   if (cp.status === 2) blocked = cp.stderr
 
+  const ss = spawnSync(
+    process.execPath,
+    [join(HOOKS_DIR, 'secret-scan/secret-scan.mjs'), '--file', p],
+    { encoding: 'utf8' },
+  )
+  if (ss.status === 2) blocked = (blocked ?? '') + ss.stderr
+
   const mv = spawnSync(
     process.execPath,
     [join(HOOKS_DIR, 'memory-validate/memory-validate.mjs'), p],
@@ -77,6 +84,12 @@ for (const p of paths) {
       spawnSync(
         process.execPath,
         [journal, agent, tool, p, 'block:config-protection'],
+        { encoding: 'utf8' },
+      )
+    if (ss.status === 2)
+      spawnSync(
+        process.execPath,
+        [journal, agent, tool, p, 'block:secret-scan'],
         { encoding: 'utf8' },
       )
     if (mv.status === 2)

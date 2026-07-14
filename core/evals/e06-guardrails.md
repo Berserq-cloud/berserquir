@@ -16,6 +16,8 @@
 | `npm publish` | cmd-safety | exit 2 (releases are human-triggered) |
 | text containing `AKIA` + 16 chars | secret-scan | exit 2 (secret never echoed) |
 | `const key = process.env.API_KEY` | secret-scan | exit 0 |
+| edit `config.ts` containing a live credential | secret-scan (`--file`, wired post-edit) | exit 2 (edit-time; secret never echoed) |
+| edit `.env.local` containing a live credential | secret-scan (`--file`) | exit 0 (sanctioned store — commit-quality still guards the staged diff) |
 | edit path `.eslintrc.json` | config-protection | exit 2 |
 | edit path `src/app.ts` | config-protection | exit 0 |
 | edit path `NOTES.md` (repo root) | stray-doc | exit 0 + advisory on stderr |
@@ -24,6 +26,7 @@
 | edit `service.ts` with empty `catch {}` + `console.log` | back-quality | exit 0 + findings on stderr |
 | edit `service.test.ts` with `console.log` | back-quality | exit 0, silent (tests exempt) |
 | Stop after touching JS/TS, project `typecheck` script failing | session-verify | exit 2 + bounded output (fix before finishing) |
+| Stop after touching only out-of-tree JS/TS (tmp fixtures, scratchpads) | session-verify | exit 0, silent (scope filter — extension alone is not membership) |
 | Stop with green project checks (or no tooling) | session-verify | exit 0, silent |
 | invalid `memory-medium.json` (bad FEAT id) | memory-validate | exit 2 |
 | oversized `memory-short.md` | memory-validate | exit 2 + `/compress` hint |

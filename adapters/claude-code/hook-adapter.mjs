@@ -3,8 +3,8 @@
 // payload, delegate to canonical zero-deps hooks). Vendored to .berserqir/hooks/.
 //
 // Wired via .claude/settings.json:
-//   pre-bash       PreToolUse (matcher Bash)          → git-safety + cmd-safety  exit 2 = deny
-//   post-edit      PostToolUse (Edit|Write|...)       → config-protection + memory-validate + journal + advisories (stray-doc, front-quality)
+//   pre-bash       PreToolUse (matcher Bash)          → git-safety + cmd-safety + secret-scan  exit 2 = deny
+//   post-edit      PostToolUse (Edit|Write|...)       → config-protection + secret-scan (--file) + memory-validate + journal + advisories (stray-doc, front-quality)
 //   session-start  SessionStart                       → stdout injects §Focus + active instincts (≥0.7, cap 6)
 //   stop           Stop                               → memory untouched this session ⇒ exit 2 (once — respects stop_hook_active)
 //   pre-compact    PreCompact                         → archive memory-short verbatim (deterministic half of /compress step 1)
@@ -57,6 +57,7 @@ if (mode === 'pre-bash') {
   for (const guard of [
     'git-safety/git-safety.mjs',
     'cmd-safety/cmd-safety.mjs',
+    'secret-scan/secret-scan.mjs',
   ]) {
     const g = join(HOOKS_DIR, guard)
     if (!existsSync(g)) continue
@@ -101,6 +102,15 @@ if (mode === 'post-edit') {
   if (cp.status === 2) {
     blocked = cp.stderr
     trace(evt.tool_name ?? 'Edit', p, 'block:config-protection')
+  }
+  const ss = run(process.execPath, [
+    join(HOOKS_DIR, 'secret-scan/secret-scan.mjs'),
+    '--file',
+    p,
+  ])
+  if (ss.status === 2) {
+    blocked = (blocked ?? '') + ss.stderr
+    trace(evt.tool_name ?? 'Edit', p, 'block:secret-scan')
   }
   const mv = run(process.execPath, [
     join(HOOKS_DIR, 'memory-validate/memory-validate.mjs'),

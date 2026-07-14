@@ -13,7 +13,7 @@ handoffs:
     send: true
   - label: Delegate trivial change
     agent: junior-infra
-    prompt: Apply the trivial IaC change described above via fast-path.
+    prompt: Apply the trivial IaC change described above via fast-path. Re-check intake first — 2+ files or a security-sensitive path exceeds junior scope, escalate instead of stretching the lane.
     send: true
   - label: Validate IaC
     agent: qa

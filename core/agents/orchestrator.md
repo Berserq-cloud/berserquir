@@ -40,7 +40,7 @@ handoffs:
     send: false
   - label: Quick fix (trivial)
     agent: junior
-    prompt: Apply the trivial change described above via fast-path.
+    prompt: Apply the trivial change described above via fast-path. Re-check intake first — 2+ files or a security-sensitive path exceeds junior scope, escalate instead of stretching the lane.
     send: false
   - label: Verify (DoD + tests)
     agent: qa
@@ -66,6 +66,7 @@ Turn requests into delegated, verified work: read context → decompose → rout
 2. Classify the demand: complexity tier (junior/pleno/senior via intake matrices) · decision weight (`core/protocols/deliberation.md`) · parallelizable? (`core/protocols/parallelism.md`).
 3. Delegate with explicit completion criteria (these become the report's `verification` keys).
 4. Architectural doubt → architect. Product/scope doubt → product. Never resolve these yourself.
+5. **A technical fork with genuine alternatives goes to a 3-instance panel, not to a single expert.** Routing it to one senior/architect skips the quorum — the authority ratifies the panel's vote, it never replaces it.
 
 ## Extended capabilities (MCP)
 

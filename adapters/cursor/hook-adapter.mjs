@@ -3,8 +3,8 @@
 // payload, delegate to canonical zero-deps hooks). Vendored to .berserqir/hooks/.
 //
 // Wired via .cursor/hooks.json. Cursor hooks speak JSON over stdio:
-//   before-shell  beforeShellExecution → git-safety + cmd-safety → {"permission":"deny"|"allow"} (real block)
-//   after-edit    afterFileEdit        → config-protection + memory-validate + journal + advisories (observational — violations surface as agentMessage)
+//   before-shell  beforeShellExecution → git-safety + cmd-safety + secret-scan → {"permission":"deny"|"allow"} (real block)
+//   after-edit    afterFileEdit        → config-protection + secret-scan (--file) + memory-validate + journal + advisories (observational — violations surface as agentMessage)
 //   stop          stop                 → memory staleness warning (observational)
 //
 // Defensive: unknown payload shapes → allow silently (never break the harness).
@@ -53,6 +53,7 @@ if (mode === 'before-shell') {
   for (const guard of [
     'git-safety/git-safety.mjs',
     'cmd-safety/cmd-safety.mjs',
+    'secret-scan/secret-scan.mjs',
   ]) {
     const g = join(HOOKS_DIR, guard)
     if (!existsSync(g)) continue
@@ -95,6 +96,15 @@ if (mode === 'after-edit') {
   if (cp.status === 2) {
     violation += cp.stderr ?? ''
     trace('edit', p, 'block:config-protection')
+  }
+  const ss = run(process.execPath, [
+    join(HOOKS_DIR, 'secret-scan/secret-scan.mjs'),
+    '--file',
+    p,
+  ])
+  if (ss.status === 2) {
+    violation += ss.stderr ?? ''
+    trace('edit', p, 'block:secret-scan')
   }
   const mv = run(process.execPath, [
     join(HOOKS_DIR, 'memory-validate/memory-validate.mjs'),

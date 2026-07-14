@@ -24,8 +24,13 @@ Skip when ALL true: task touches <3 files · no architectural decision · no new
 
 ## Fast-path (skip QUESTIONS + ALIGN)
 
-Trigger: exactly 1 file AND ≤3 lines changed, OR pure instrumentation (log/comment/debug marker) marked temporary.
+Trigger: exactly 1 file AND ≤3 lines changed, OR pure instrumentation (log/comment/debug marker, still 1 file) marked temporary.
 Rules: response ≤5 lines · no lint/typecheck ceremony · junior tier defaults to this lane.
+
+Hard limits — any one kills the fast-path (run ALIGN):
+- **A second file.** 2+ files is never fast-path, whatever the line count.
+- **Sensitive domain — the touched path decides, not the task framing.** Auth, payments, data deletion, migrations, security-sensitive files: one "harmless" line inside an auth file IS a security change (domain beats size).
+- **Fast-path is re-checked against the actual diff, never inherited.** A delegation labeled "trivial — via fast-path" is a routing hint, not authorization to skip ALIGN.
 
 ## ALIGN schema (mandatory outside fast-path)
 

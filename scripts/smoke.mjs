@@ -103,6 +103,24 @@ check(
   'secret-scan allows clean text',
   hook('secret-scan/secret-scan.mjs', ['hello world']) === 0,
 )
+{
+  const leak = join(TMP, 'leak.ts')
+  writeFileSync(leak, 'export const key = "sk-abcdefghij0123456789XYZ"\n')
+  check(
+    'secret-scan --file blocks secret in source file',
+    hook('secret-scan/secret-scan.mjs', ['--file', leak]) === 2,
+  )
+  const envFile = join(TMP, '.env.local')
+  writeFileSync(envFile, 'OPENAI_API_KEY=sk-abcdefghij0123456789XYZ\n')
+  check(
+    'secret-scan --file exempts .env family (sanctioned store)',
+    hook('secret-scan/secret-scan.mjs', ['--file', envFile]) === 0,
+  )
+  check(
+    'secret-scan --file tolerates missing file',
+    hook('secret-scan/secret-scan.mjs', ['--file', join(TMP, 'nope.ts')]) === 0,
+  )
+}
 check(
   'cmd-safety blocks rm -rf',
   hook('cmd-safety/cmd-safety.mjs', ['rm -rf src']) === 2,
@@ -399,6 +417,22 @@ check(
   check(
     'session-verify opt-out works',
     sv({ BERSERQIR_SESSION_VERIFY: '0' }).status === 0,
+  )
+  // scope filter: out-of-tree fixtures (tmp scratchpads) must not fire the
+  // project's tooling even while its typecheck is red
+  const outside = join(TMP, 'outside-fixture.ts')
+  writeFileSync(outside, 'export const b = 2\n')
+  writeFileSync(
+    join(projMem, 'memory-short.md'),
+    `# m\n\n## Focus\n\nx\n\n## Journal\n\n- 2026-07-10T00:00:00Z · agent · edit · ${outside}\n\n## Errors & learnings\n\n-\n\n## Open threads\n\n-\n`,
+  )
+  check(
+    'session-verify ignores out-of-tree fixtures (scope filter)',
+    sv().status === 0,
+  )
+  writeFileSync(
+    join(projMem, 'memory-short.md'),
+    '# m\n\n## Focus\n\nx\n\n## Journal\n\n- 2026-07-10T00:00:00Z · agent · edit · src/x.ts · fail:session-verify\n\n## Errors & learnings\n\n-\n\n## Open threads\n\n-\n',
   )
   writeFileSync(
     join(proj, 'package.json'),

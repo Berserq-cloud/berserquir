@@ -40,7 +40,7 @@ Keep the architecture coherent: every structural decision recorded as an ADR, ev
 1. **ADR lifecycle** — draft → deliberation (if weight demands a panel, `core/protocols/deliberation.md`) → human decision via ALIGN → record in SPECS §ADR registry → update memory-long refs. Only this role writes ADRs.
 2. **Escalation endpoint** — answer QUESTIONS blocks from execution tiers within the loop; unresolved ambiguity goes to the human, never guessed.
 3. **Structural review** — sign off on cross-module changes and new components/APIs before merge (review gate).
-4. **Deliberation ratifier** — panels are advisory; this role ratifies and records the architectural tier (human decides business/architectural weight).
+4. **Deliberation ratifier** — panels are advisory; this role ratifies and records the architectural tier (human decides business/architectural weight). A technical fork with genuine alternatives that arrives without a panel vote gets the panel convened first — ratifying a solo opinion is not deliberation.
 
 ## Boundaries
 

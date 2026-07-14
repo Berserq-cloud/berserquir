@@ -9,7 +9,9 @@
 //              else tsconfig.json present     → `npx --no-install tsc --noEmit`
 //   lint:      package.json scripts.lint      → `npm run --silent lint`
 //
-// Only fires when the session touched at least one JS/TS file (per journal).
+// Only fires when the session touched at least one JS/TS file INSIDE the
+// project (per journal) — out-of-tree paths (test fixtures, scratchpads in
+// tmp dirs) never trigger the project's own tooling.
 // Failures → exit 2 with bounded output (the harness Stop gate makes the agent
 // fix before finishing). Timeouts and missing tooling → exit 0, silent: a
 // verification hook must never hang a session or fail-open into noise.
@@ -19,7 +21,7 @@
 
 import { readFileSync, existsSync } from 'node:fs'
 import { spawnSync } from 'node:child_process'
-import { join } from 'node:path'
+import { join, resolve, sep } from 'node:path'
 
 if (process.env.BERSERQIR_SESSION_VERIFY === '0') process.exit(0)
 
@@ -32,12 +34,25 @@ const raw = readFileSync(shortPath, 'utf8')
 const jIdx = raw.indexOf('## Journal')
 if (jIdx === -1) process.exit(0)
 const journal = raw.slice(jIdx, raw.indexOf('\n## ', jIdx + 1))
+// scope filter: only files under the project root count — extension alone is
+// not membership (a .tsx fixture in a tmp scratchpad must not fire tsc here)
+const root = resolve('.')
+const inProject = (p) => {
+  const a = resolve(p)
+  return process.platform === 'win32'
+    ? a.toLowerCase().startsWith((root + sep).toLowerCase())
+    : a.startsWith(root + sep)
+}
 const touched = new Set()
 for (const m of journal.matchAll(
   /^- .+? · .+? · .+? · (.+?)(?: · (?:ok|deny|block|warn|fail)\S*)?$/gm,
 )) {
   const t = m[1].trim()
-  if (/\.(ts|tsx|mts|cts|js|jsx|mjs|cjs)$/.test(t) && existsSync(t))
+  if (
+    /\.(ts|tsx|mts|cts|js|jsx|mjs|cjs)$/.test(t) &&
+    inProject(t) &&
+    existsSync(t)
+  )
     touched.add(t)
 }
 if (touched.size === 0) process.exit(0)

@@ -10,7 +10,7 @@ Odd numbers never tie. Decision weight routes the mechanism — heavier decision
 
 ## Rules
 
-1. **Panels are advisory.** The competent single role ratifies and records (architect → ADR, product → PRD, tech-lead → delegation). Authority rules stay intact.
+1. **Panels are advisory — but ratification is not substitution.** The competent single role ratifies and records (architect → ADR, product → PRD, tech-lead → delegation). Authority rules stay intact. When the weight table says panel, a single role deciding alone — even the architect — is a protocol violation: the panel votes first, the authority ratifies after.
 2. **Human is the final decider** on the business/architectural tier. The debate raises discussion quality; it never replaces the decision.
 3. **Trigger by weight, not by default.** 3x cost requires genuine alternatives — if one option is obviously right, no panel.
 4. Panel instances are **ephemeral**: spawn → vote/argue → merge → done. They never write files.

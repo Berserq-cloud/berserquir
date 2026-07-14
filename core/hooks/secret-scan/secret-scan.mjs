@@ -3,15 +3,29 @@
 // Blocks content containing credential patterns (prompts, diffs, commands).
 // Zero dependencies, cross-platform (Node — no sh/grep required).
 //
-// Input:  text as argv[2], or on stdin.
+// Input:  text as argv[2], `--file <path>` (edit-time scan of a file's
+//         contents — never shuttled through argv), or on stdin.
 // Output: exit 0 = clean · exit 2 = secret detected (never prints the secret itself)
 // Override (human-set, e.g. test fixtures): BERSERQIR_SECRET_ALLOW=1
 
-import { readFileSync } from 'node:fs'
+import { readFileSync, statSync } from 'node:fs'
 
 if (process.env.BERSERQIR_SECRET_ALLOW === '1') process.exit(0)
 
 let input = process.argv[2]
+if (input === '--file') {
+  const p = process.argv[3] ?? ''
+  // .env family is the sanctioned local secret store (normally gitignored) —
+  // the edit-time scan exempts it; commit-quality still scans any staged diff
+  const base = p.split(/[\\/]/).pop() ?? ''
+  if (/^\.env(\..+)?$/.test(base)) process.exit(0)
+  try {
+    if (statSync(p).size > 1_000_000) process.exit(0) // large/binary — not source
+    input = readFileSync(p, 'utf8')
+  } catch {
+    process.exit(0) // missing/unreadable — a guardrail never breaks the harness
+  }
+}
 if (!input) {
   try {
     input = readFileSync(0, 'utf8')
