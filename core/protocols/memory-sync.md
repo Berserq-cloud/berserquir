@@ -21,7 +21,7 @@ Memory is hybrid by primary consumer (plan D10): Markdown where LLM/human reads 
 Run at: task start · every handoff (both directions) · task end.
 
 1. **Read before acting:** memory-short (state) + memory-medium (sprint) + memory-long §relevant (constraints) + active instincts (≥ 0.7, cap 6 — `core/protocols/instincts.md` §Injection) + the **profile card** — human-profile §Areas filled rows + last override, one line (mentorship calibration; harnesses with session hooks inject it automatically).
-2. **Write after acting:** memory-short — what was done, errors hit, open threads; memory-medium — feature status/counters if a feature moved.
+2. **Write after acting:** memory-short — what was done, errors hit, open threads; memory-medium — feature status/counters if a feature moved. **Graph gaps are findings, not background noise:** discovered a real module absent from `codemap.md`/`graph.json`, or an anchor that doesn't resolve? Record it in the Sub-Agent Report `decisions` field with the suggested entry — falling back to grep and moving on is how the graph rots silently.
 3. **Never write to memory-long** without an approved ADR (authority roles only).
 4. Set `memorySync: true` in the Sub-Agent Report only after step 2.
 

@@ -11,7 +11,7 @@ Thin skill — the weight lives in the protocols. This is the map.
 
 1. **Budget per phase** — `core/protocols/context-budget.md`: cumulative while exploring, **substitutive** at EXECUTE. Never carry exploration debris into implementation.
 2. **Memory discipline** — `core/protocols/memory-sync.md`: read before acting, write after acting, never touch memory-long without an ADR.
-3. **Graph-first navigation** — codemap (~1–2k tok) is always cheap: read it FIRST, then follow anchors/edges into the relevant subgraph (`graph.json`). Grep an anchor (`ADR-010`, `FEAT-2026-…`) instead of reading files hunting for context.
+3. **Graph-first navigation** — codemap (~1–2k tok) is always cheap: read it FIRST, then follow anchors/edges into the relevant subgraph (`graph.json`). Grep an anchor (`ADR-010`, `FEAT-2026-…`) instead of reading files hunting for context. **The map is falsifiable:** a real module missing from it is a finding — fall back to search gracefully, then surface the gap in your report with a suggested entry (`core/protocols/memory-sync.md` §ritual step 2); never just grep past it.
 4. **Progressive disclosure** — skill frontmatter → skill body → hub resources (`.berserqir/skills-resources/`). Load deeper only when the task demands it.
 
 ## Loading order for any task

@@ -14,7 +14,7 @@ Every delegated task returns a **structured JSON report**, not narrative text. T
     "criterion-2": false
   },
   "output": ["files created or modified"],
-  "decisions": ["non-obvious choices made, if any"],
+  "decisions": ["non-obvious choices made, if any — including graph gaps discovered (unmapped module, dangling anchor) with the suggested codemap/graph entry"],
   "nextAction": "if partial/failed: what remains and why",
   "memorySync": true
 }

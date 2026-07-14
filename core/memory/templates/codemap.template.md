@@ -5,7 +5,7 @@ sizeBudget: 2000 tokens — hard cap; deeper detail belongs in graph.json subgra
 
 # codemap — Repository Map
 
-<!-- Built by /init (brownfield scan) or seeded at /init (greenfield). Updated incrementally by the memory-sync ritual. One line per module: path — what it is. Anchors (ADR-NNN, FEAT-...) make grep an exact lookup. -->
+<!-- Built by /init (brownfield scan) or seeded at /init (greenfield). Updated incrementally by the memory-sync ritual — and any agent that discovers an unmapped module or dangling anchor reports it (Sub-Agent Report `decisions`) with the suggested entry: the map is only useful while it's true. One line per module: path — what it is. Anchors (ADR-NNN, FEAT-...) make grep an exact lookup. -->
 
 ## Modules
 
