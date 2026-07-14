@@ -19,6 +19,10 @@
 | edit `config.ts` containing a live credential | secret-scan (`--file`, wired post-edit) | exit 2 (edit-time; secret never echoed) |
 | edit `.env.local` containing a live credential | secret-scan (`--file`) | exit 0 (sanctioned store — commit-quality still guards the staged diff) |
 | edit path `.eslintrc.json` | config-protection | exit 2 |
+| edit path `.berserqir/hooks/git-safety/git-safety.mjs` | config-protection | exit 2 (guardrails protect themselves) |
+| edit path `.claude/settings.json` / `.github/hooks/*` / `.cursor/hooks.json` | config-protection | exit 2 (hook wiring) |
+| edit path `.berserqir/manifest.json` | config-protection | exit 2 (install ledger — the audit trail is not editable) |
+| edit path `.berserqir/memory/memory-short.md` | config-protection | exit 0 (live memory stays free — memory-validate owns its schema) |
 | edit path `src/app.ts` | config-protection | exit 0 |
 | edit path `NOTES.md` (repo root) | stray-doc | exit 0 + advisory on stderr |
 | edit `Hero.tsx` containing `bg-clip-text` | front-quality | exit 0 + finding on stderr |

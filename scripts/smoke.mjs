@@ -84,6 +84,30 @@ check(
   hook('config-protection/config-protection.mjs', ['src/app.js']) === 0,
 )
 check(
+  'config-protection blocks guardrail script edit (self-protection)',
+  hook('config-protection/config-protection.mjs', [
+    '.berserqir/hooks/git-safety/git-safety.mjs',
+  ]) === 2,
+)
+check(
+  'config-protection blocks hook wiring edit',
+  hook('config-protection/config-protection.mjs', [
+    'proj/.claude/settings.json',
+  ]) === 2,
+)
+check(
+  'config-protection blocks manifest edit (audit ledger)',
+  hook('config-protection/config-protection.mjs', [
+    '.berserqir/manifest.json',
+  ]) === 2,
+)
+check(
+  'config-protection still allows live memory',
+  hook('config-protection/config-protection.mjs', [
+    '.berserqir/memory/memory-short.md',
+  ]) === 0,
+)
+check(
   'secret-scan blocks sk- key',
   hook('secret-scan/secret-scan.mjs', ['key=sk-abcdefghij0123456789XYZ']) === 2,
 )

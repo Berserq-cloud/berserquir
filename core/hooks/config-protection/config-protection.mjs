@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 // Berserqir guardrail: config-protection
 // Blocks agent edits to lint/test/quality configs — fixing code by weakening the
-// ruler is forbidden (ECC-verified failure mode).
+// ruler is forbidden (ECC-verified failure mode). Also self-protects the
+// guardrail layer: hook scripts, harness wiring and the install ledger.
 // Zero dependencies, cross-platform (Node — no sh required; handles \ and / paths).
 //
 // Input:  target file path as argv[2], or on stdin.
@@ -50,5 +51,18 @@ if (
   posix.startsWith('.github/workflows/')
 )
   block('CI workflow')
+
+// guardrail self-protection: the hooks ARE the ruler — an agent editing the
+// guard scripts, their harness wiring, or the install ledger is disabling or
+// forging the audit layer, never a legitimate task. Human-authorized changes
+// go through the same override; live memory (.berserqir/memory/) stays free.
+const SELF = [
+  [/(^|\/)\.berserqir\/hooks\//, 'harness guardrail script'],
+  [/(^|\/)\.berserqir\/manifest\.json$/, 'install ledger (audit trail)'],
+  [/(^|\/)\.github\/hooks\//, 'guardrail wiring'],
+  [/(^|\/)\.claude\/settings\.json$/, 'guardrail wiring'],
+  [/(^|\/)\.cursor\/hooks\.json$/, 'guardrail wiring'],
+]
+for (const [re, kind] of SELF) if (re.test(posix)) block(kind)
 
 process.exit(0)
